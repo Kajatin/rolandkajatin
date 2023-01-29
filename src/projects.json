@@ -1,0 +1,9 @@
+{
+    "projects": [
+        {
+            "name": "Jeston GPIO port to Rust",
+            "description": "The Jetson platfrom from NVIDIA is a popular platform for embedded development. One of the features these boards have are the GPIO pins. These pins are able to control external devices using the Jetson.GPIO library which is written in Python. This project is a port of the Jetson.GPIO library to Rust.",
+            "cover": "$lib/images/rust-jetson-gpio.png"
+        }
+    ]
+}
