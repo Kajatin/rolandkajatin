@@ -3,7 +3,7 @@
     import { projects } from '../projects.json';
 </script>
 
-<h1>Coming soon...</h1>
+<h1>Projects</h1>
 <div class="projects">
 	{#each projects as project}
 		<Project {project} />
@@ -11,11 +11,15 @@
 </div>
 
 <style>
+	h1 {
+		margin-bottom: 4rem;
+	}
+
 	.projects {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2rem;
+		gap: 3rem;
 		width: 100%;
 	}
 </style>
