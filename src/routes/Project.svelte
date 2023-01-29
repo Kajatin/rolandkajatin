@@ -10,7 +10,7 @@
 
 	export let project: ProjectType;
 
-	let src = '/src/public/' + project.cover;
+	let src = '/images/' + project.cover;
 </script>
 
 <div class="top">
