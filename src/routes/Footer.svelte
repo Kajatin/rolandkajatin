@@ -102,4 +102,15 @@
 		height: 1.7em;
 		fill: var(--page-background);
 	}
+
+	@media (max-width: 1000px) {
+		footer {
+			flex-direction: column;
+			padding: 2rem 1rem 4rem 1rem;
+		}
+
+		footer nav {
+			margin-bottom: 2rem;
+		}
+	}
 </style>

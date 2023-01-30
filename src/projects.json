@@ -9,14 +9,14 @@
         },
         {
             "name": "Aqua - Water Tracker App",
-            "description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that reminds you to drink water and also registers your intake. It's built using SwiftUI and Xcode.",
+            "description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
             "cover": "swift-aqua.png",
             "icons": [ "swift", "xcode" ],
             "github": "https://github.com/Kajatin/Aqua"
         },
         {
             "name": "Art made with code",
-            "description": "I've always been fascinated by emergent art with code. So I decided to try my hands on it. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the P5JS library.",
+            "description": "I've always been fascinated by emergent art with code. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the p5.js library.",
             "cover": "art-automata.png",
             "icons": [ "p5js", "javascript" ],
             "github": "https://github.com/Kajatin/artistic-code"

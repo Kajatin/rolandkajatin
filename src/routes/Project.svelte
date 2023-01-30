@@ -6,6 +6,7 @@
 		description: string;
 		cover: string;
 		icons: string[] | null;
+		github: string;
 	};
 
 	export let project: ProjectType;
@@ -30,7 +31,26 @@
 				<h1>{project.name}</h1>
 				<p>{project.description}</p>
 			</div>
-			<button>Read more</button>
+			<div class="links">
+				<a
+					href=""
+					target="_blank"
+					rel="noopener noreferrer"
+					class="github-corner"
+					aria-label="View source on GitHub"
+				>
+					Read more
+				</a>
+				<a
+					href={project.github}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="github-corner"
+					aria-label="View source on GitHub"
+				>
+					Source code
+				</a>
+			</div>
 		</div>
 	</div>
 </div>
@@ -84,12 +104,9 @@
 		padding: 1rem;
 	}
 
-	.outer button {
-		background: none;
-		border: none;
-		font-size: 1rem;
+	.outer a {
+		text-decoration: none;
 		font-weight: 600;
-		cursor: pointer;
 		margin: 0;
 		padding: 0;
 		color: var(--accent-secondary);
@@ -97,10 +114,14 @@
 		transition: 0.2s ease-in-out;
 	}
 
-	.outer button:hover {
-		/* text-decoration: underline; */
+	.outer a:hover {
 		border-bottom: 0.3rem solid var(--accent-secondary);
-		/* color: var(--accent-primary); */
+	}
+
+	.links {
+		display: flex;
+		flex-direction: row;
+		gap: 1rem;
 	}
 
 	.inner > h1 {
@@ -150,6 +171,16 @@
 
 		.outer {
 			margin: 0;
+		}
+
+		.inner > p {
+			margin: 0.8rem 0;
+		}
+
+		.links {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
 		}
 
 		.logos {
