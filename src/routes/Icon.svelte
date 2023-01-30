@@ -5,7 +5,7 @@
 	import { icons } from '../icons.json';
 
 	let ic = icons[icon];
-	let fill = gray ? '' : ic.fill;
+	let fill = gray || !ic ? '' : ic.fill;
 </script>
 
 {#if ic}
