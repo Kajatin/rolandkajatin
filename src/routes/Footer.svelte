@@ -52,7 +52,7 @@
 		flex-direction: row;
 		justify-content: space-between;
 		padding: 2rem 2rem 4rem 2rem;
-		background: var(--accent-secondary);
+		background: var(--accent-primary);
 	}
 
     footer nav {

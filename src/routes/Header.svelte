@@ -50,13 +50,13 @@
 		gap: 1rem;
 		border-radius: 0.5rem;
 		width: min-content;
-		/* background: var(--accent-primary); */
-		border: 0.1rem solid var(--accent-secondary);
-		box-shadow: 0.4rem 0.5rem var(--accent-secondary);
+		/* background: var(--accent-secondary); */
+		border: 0.1rem solid var(--accent-primary);
+		box-shadow: 0.4rem 0.5rem var(--accent-primary);
 	}
 
 	nav ul li {
-		color: var(--accent-secondary);
+		color: var(--accent-primary);
 		font-weight: bold;
 		text-transform: uppercase;
 		cursor: pointer;
@@ -67,7 +67,7 @@
 
 	nav ul li:hover {
 		color: var(--page-background);
-		background: var(--accent-secondary);
+		background: var(--accent-primary);
 	}
 
 	nav ul li a {
@@ -76,7 +76,7 @@
 	}
 
 	.github-corner {
-		fill: var(--accent-secondary);
+		fill: var(--accent-primary);
 		color: var(--page-background);
 		position: absolute;
 		top: 0;

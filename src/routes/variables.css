@@ -1,5 +1,6 @@
 :root {
-    --accent-primary: rgb(64, 190, 121);
-    --accent-secondary: rgb(95, 86, 197);
+    --accent-primary: rgb(95, 86, 197);
+    --accent-secondary: rgb(64, 190, 121);
     --page-background: rgb(251, 250, 241);
+    --page-background-dark: rgb(47, 46, 44);
 }

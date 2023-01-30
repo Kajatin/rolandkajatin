@@ -51,7 +51,7 @@
 	}
 
 	.top:hover {
-		box-shadow: 0.4rem 0.5rem var(--accent-secondary);
+		box-shadow: 0.4rem 0.5rem var(--accent-primary);
 	}
 
 	.container {
@@ -60,7 +60,7 @@
 		justify-content: space-between;
 		align-items: center;
 
-		box-shadow: 0rem 0rem var(--accent-secondary);
+		box-shadow: 0rem 0rem var(--accent-primary);
 	}
 
 	img {
@@ -92,15 +92,15 @@
 		cursor: pointer;
 		margin: 0;
 		padding: 0;
-		color: var(--accent-primary);
+		color: var(--accent-secondary);
 		border-bottom: 0.3rem solid transparent;
 		transition: 0.2s ease-in-out;
 	}
 
 	.outer button:hover {
 		/* text-decoration: underline; */
-		border-bottom: 0.3rem solid var(--accent-primary);
-		/* color: var(--accent-secondary); */
+		border-bottom: 0.3rem solid var(--accent-secondary);
+		/* color: var(--accent-primary); */
 	}
 
 	.inner > h1 {
