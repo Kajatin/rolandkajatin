@@ -2,6 +2,7 @@
 	import Icon from './Icon.svelte';
 
 	type ProjectType = {
+		id: string;
 		name: string;
 		description: string;
 		cover: string;
@@ -33,10 +34,7 @@
 			</div>
 			<div class="links">
 				<a
-					href=""
-					target="_blank"
-					rel="noopener noreferrer"
-					class="github-corner"
+					href="/projects/{project.id}"
 					aria-label="View source on GitHub"
 				>
 					Read more
@@ -45,7 +43,6 @@
 					href={project.github}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="github-corner"
 					aria-label="View source on GitHub"
 				>
 					Source code

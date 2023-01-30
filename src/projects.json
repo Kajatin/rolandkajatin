@@ -1,6 +1,7 @@
 {
     "projects": [
         {
+            "id": "gpio",
             "name": "Jetson GPIO port to Rust",
             "description": "The Jetson platfrom from NVIDIA is a popular platform for embedded development. One of the features these boards have are the GPIO pins. These pins are able to control external devices using the Jetson.GPIO library which is written in Python. This project is a port of the Jetson.GPIO library to Rust.",
             "cover": "rust-jetson-gpio.png",
@@ -8,6 +9,7 @@
             "github": "https://github.com/Kajatin/jetson-gpio-rust"
         },
         {
+            "id": "aqua",
             "name": "Aqua - Water Tracker App",
             "description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
             "cover": "swift-aqua.png",
@@ -15,6 +17,7 @@
             "github": "https://github.com/Kajatin/Aqua"
         },
         {
+            "id": "art",
             "name": "Art made with code",
             "description": "I've always been fascinated by emergent art with code. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the p5.js library.",
             "cover": "art-automata.png",
@@ -22,6 +25,7 @@
             "github": "https://github.com/Kajatin/artistic-code"
         },
         {
+            "id": "website",
             "name": "Personal website",
             "description": "Well, you're looking at it 👀. This website is built using SvelteKit and hosted on Cloudflare Pages. The source code is available on GitHub.",
             "cover": "svelte-personal-website.png",
