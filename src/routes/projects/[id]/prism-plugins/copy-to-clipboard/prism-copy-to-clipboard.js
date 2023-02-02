@@ -93,7 +93,7 @@
 		var settings = {
 			copy: 'Copy',
 			'copy-error': 'Press Ctrl+C to copy',
-			'copy-success': 'Copied!',
+			'copy-success': 'Copied',
 			'copy-timeout': 2000
 		};
 

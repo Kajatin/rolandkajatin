@@ -23,7 +23,8 @@ div.code-toolbar:focus-within>.toolbar {
 
 div.code-toolbar>.toolbar>.toolbar-item {
 	display: inline-block;
-	margin-right: 0.5rem;
+	margin-top: 0.4rem;
+	margin-right: 0.4rem;
 }
 
 div.code-toolbar>.toolbar>.toolbar-item>a {
@@ -47,14 +48,16 @@ div.code-toolbar>.toolbar>.toolbar-item>button {
 div.code-toolbar>.toolbar>.toolbar-item>a,
 div.code-toolbar>.toolbar>.toolbar-item>button,
 div.code-toolbar>.toolbar>.toolbar-item>span {
-	font-size: .8em;
-	padding: 0.3rem .5em;
+	font-size: .7em;
+	padding: 0.4rem .6em;
 	border: 0.1rem solid var(--accent-primary);
-	box-shadow: 0.1rem 0.2rem var(--accent-primary);
+	box-shadow: 0.05rem 0.1rem var(--accent-primary);
 	border-radius: .2em;
 	transition: all 0.2s ease-in-out;
 	cursor: pointer;
 	opacity: 0.7;
+	text-transform: uppercase;
+	font-weight: bold;
 }
 
 div.code-toolbar>.toolbar>.toolbar-item>a:hover,
@@ -66,4 +69,5 @@ div.code-toolbar>.toolbar>.toolbar-item>span:focus {
 	color: inherit;
 	opacity: inherit;
 	text-decoration: none;
+	box-shadow: 0.1rem 0.2rem var(--accent-primary);
 }
