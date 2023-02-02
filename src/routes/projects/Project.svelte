@@ -63,6 +63,8 @@
 		border-radius: 1rem;
 		border: 0.15rem solid black;
 		box-shadow: 0.4rem 0.5rem transparent;
+        /* background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary)); */
+		background: white;
 
 		overflow: hidden;
 	}
@@ -97,8 +99,7 @@
 		justify-content: center;
 		align-items: flex-start;
 
-		margin: 0 0 0 1rem;
-		padding: 1rem;
+		padding: 1.5rem;
 	}
 
 	.outer a {

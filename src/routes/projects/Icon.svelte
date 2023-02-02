@@ -2,7 +2,7 @@
 	export let icon: string;
 	export let gray: boolean = false;
 
-	import { icons } from '../icons.json';
+	import { icons } from '/src/icons.json';
 
 	let ic = icons[icon];
 	let fill = gray || !ic ? '' : ic.fill;
