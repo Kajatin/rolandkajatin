@@ -25,14 +25,15 @@ code[class*="language-"],
 pre[class*="language-"] {
 	/* background: unset; */
 	color: #001080;
-	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; this is the default */
+	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; */
 	/* The following properties are standard, please leave them as they are */
-	font-size: 1em;
+	font-size: 0.9rem;
 	direction: ltr;
 	text-align: left;
 	white-space: pre;
 	word-spacing: normal;
 	word-break: normal;
+	overflow: auto;
 	line-height: 1.2em;
 	/* The default is 4, but you could change it if you really, really want to */
 	-moz-tab-size: 4;
@@ -69,7 +70,8 @@ pre[class*="language-"] {
 	margin: 0.5em 0;
 	/* this is the default */
 	border-radius: 0.5rem;
-	border: 0.1rem solid var(--accent-primary);
+	/* border: 0.1rem solid var(--accent-primary); */
+		border: 0.1rem solid black;
 	background-color: white;
 }
 
