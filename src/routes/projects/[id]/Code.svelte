@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 
 	import '$lib/prism-components/prism-rust';
+	import '$lib/prism-components/prism-python';
 
     import '$lib/prism-plugins/line-numbers/prism-line-numbers.js';
 	import '$lib/prism-plugins/toolbar/prism-toolbar.js';

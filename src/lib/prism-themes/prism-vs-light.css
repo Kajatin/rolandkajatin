@@ -71,17 +71,15 @@ pre[class*="language-"] {
 	/* this is the default */
 	border-radius: 0.5rem;
 	/* border: 0.1rem solid var(--accent-primary); */
-		border: 0.1rem solid black;
+	border: 0.1rem solid black;
 	background-color: white;
 }
 
 /* Properties specific to inline code */
 :not(pre)>code[class*="language-"] {
 	padding: 0.1em;
-	/* this is the default */
-	/* border-radius: unset; */
 	white-space: normal;
-	/* this is standard */
+	background-color: #f7f7f9;
 }
 
 /**

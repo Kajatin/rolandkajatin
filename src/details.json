@@ -1,0 +1,161 @@
+{
+    "details": {
+        "gpio": [
+            {
+                "type": "p",
+                "value": "The Jetson modules by NVIDIA are a popular choice for embedded systems. They are powerful enough to run modern machine learning algorithms and are also cheap enough to be used in IoT devices. I work a lot with the Jetson Xavier NX module and develop computer vision applications for it."
+            },
+            {
+                "type": "p",
+                "value": "One of the requirements of running a computer vision application all-day round is to ensure there's enough light even during the dark hours. My team and I used a pair of infra-red LEDs to illuminate the scene. This is the go-to choice for vision devices that are required to work in the dark, since the wavelength of the light sources are outside the visual range of the human eye. This makes this light be invisible for humans, which is a must have in order not to disturb the users of the device while they were asleep."
+            },
+            {
+                "type": "p",
+                "value": "The LEDs are mounted on a simple controller board, which is then connected to the Jetson module via the carrier board's GPIO pins. These pins are physically connected to the module and can be used to send signals as either inputs or outputs from the module. In this case, we're using the pins as outputs to control the LEDs."
+            },
+            {
+                "type": "p",
+                "value": "The pins can be controlled by software. NVIDIA has their own Python based library <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/NVIDIA/jetson-gpio\">jetson-gpio</a> which is using a similar interface to the popular <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://pypi.org/project/RPi.GPIO/\">RPi.GPIO</a> library for the Raspberry Pi."
+            },
+            {
+                "type": "code",
+                "lang": "language-python",
+                "value": "import RPi.GPIO as GPIO\n\n# This is the pin number of the GPIO pin that the LED is connected to (in BOARD mode)\npin = 7\n# Set the pin numbering mode to BOARD\nGPIO.setmode(GPIO.BOARD)\n# Set the pin to be an output pin\nGPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)\n# Turn the LED on\nGPIO.output(pin, GPIO.HIGH)\n# Clean up the GPIO pins\nGPIO.cleanup()"
+            },
+            {
+                "type": "p",
+                "value": "The pins to be controlled can be defined in four different modes. The snippet above uses the <code class=\"language-python\">BOARD</code> mode. This mode uses the physical pin numbers of the Jetson module. Then, the pin is configured as output, meaning that it can be used to send a signal out. The initial output is also set to low, which means that the LEDs will be off by default. Finally, the LED is turned on by setting the output to high. The <code class=\"language-python\">cleanup()</code> function is used to reset the system to their default state."
+            },
+            {
+                "type": "p",
+                "value": "This is simple and easy. Yet, there's a problem. The library is only available for Python, whereas I'd prefer to use a faster and pre-compiled language such as Rust. The latter simplifies deployment and execution, since it's a self contained program with a single executable and no environment needed. It's also more fun.🤓"
+            },
+            {
+                "type": "h2",
+                "value": "Let's dig deeper"
+            },
+            {
+                "type": "p",
+                "value": "Before I could port the library to Rust, I needed to understand how the Python library was working. I also wanted to retain the same interface in the Rust module. This would make it easier for people to use the library, since all the function and interfaces will be familiar and recognizable."
+            },
+            {
+                "type": "p",
+                "value": "The first thing I wanted to find out was the way the library actually interfaced with the pins."
+            },
+            {
+                "type": "code",
+                "lang": "language-python",
+                "value": "def output(channels, values):\n    ch_infos = _channels_to_infos(channels, need_gpio=True)\n\n    for ch_info, value in zip(ch_infos, values):\n        _output_one(ch_info, value)"
+            },
+            {
+                "type": "p",
+                "value": "Alright, first I need to get information about the channels (<code class=\"language-python\">_channels_to_infos()</code>). Then, I need to iterate over the channels and set the output value for each one of them (<code class=\"language-python\">_output_one()</code>)."
+            },
+            {
+                "type": "code",
+                "lang": "language-python",
+                "value": "def _output_one(ch_info, value):\n    ch_info.f_value.seek(0)\n    ch_info.f_value.write(str(int(bool(value))))\n    ch_info.f_value.flush()"
+            },
+            {
+                "type": "p",
+                "value": "Communication from user space with the kernel module (the underlying program controlling the GPIO pins) is done via files. This is common practice on Linux, so nothing out of the ordinary here."
+            },
+            {
+                "type": "p",
+                "value": "There's another important function, which registers the pin with the kernel module. This is done by writing the pin number to the <code class=\"language-python\">\"/sys/class/gpio/export\"</code> file. This file is used to register a new GPIO pin with the kernel module. The pin number is then used to create new files to set the direction of the pin and to write values to it (<code class=\"language-python\">\"/sys/class/gpio/<gpio_name>/value\"</code>) directory."
+            },
+            {
+                "type": "code",
+                "lang": "language-python",
+                "value": "def _export_gpio(ch_info):\n    _SYSFS_ROOT = \"/sys/class/gpio\"\n\n    if not os.path.exists(_SYSFS_ROOT + \"/\" + ch_info.gpio_name):\n        with open(_SYSFS_ROOT + \"/export\", \"w\") as f_export:\n            f_export.write(str(ch_info.gpio))\n\n    while not os.access(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", os.R_OK | os.W_OK):\n        time.sleep(0.01)\n\n    ch_info.f_direction = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/direction\", 'w')\n    ch_info.f_value = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", 'r+')"
+            },
+            {
+                "type": "p",
+                "value": "There's more to this library, with input pins and PWM control, but the examples above cover the basics for setting up an output pin. There is another file in the library, <code class=\"language-bash\">gpio_pin_data.py</code>, which provides information about the specific device the library is run on. This includes GPIO pin numbers for the different modes, <code class=\"language-bash\">sysfs</code> paths and other useful information. An example for pin 7 is shown below."
+            },
+            {
+                "type": "code",
+                "lang": "language-python",
+                "value": "# Pin definitions for the Xavier NX\nJETSON_NX_PIN_DEFS = [\n    ({224: 148, 169: 118}, {169:  'PS.04'}, \"2200000.gpio\", 7, 4, 'GPIO09', 'AUD_MCLK', None, None),\n    # ...\n]"
+            },
+            {
+                "type": "h2",
+                "value": "Porting the library to Rust"
+            },
+            {
+                "type": "p",
+                "value": "Now that I understood how the library worked, I could start porting it to Rust. I created a new library project using <code class=\"language-bash\">cargo new jetson-gpio-rust --lib</code>. The Python library used a lot of global variables to store information about the state of the library as the user was setting up pins. Rust doesn't like global variables so I had to wrap the library in a struct and use that to store the state. The struct is shown below."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "pub struct GPIO {\n    pub model: String,\n    pub jetson_info: JetsonInfo,\n    channel_data_by_mode: HashMap<Mode, HashMap<u32, ChannelInfo>>,\n\n    // # Dictionary objects used as lookup tables for pin to linux gpio mapping\n    channel_data: HashMap<u32, ChannelInfo>,\n\n    gpio_warnings: bool,\n    gpio_mode: Option<Mode>,\n    \n    channel_configuration: HashMap<u32, Direction>,\n}"
+            },
+            {
+                "type": "p",
+                "value": "Rust is also a strongly typed language, so I had to create types for each of the different collections used in the Python library. Above, you can see <code class=\"language-rust\">JetsonInfo</code> and <code class=\"language-rust\">ChannelInfo</code> as examples of data structure I created to store the information in a similar way as the Python library, but in a more Rusty way."
+            },
+            {
+                "type": "p",
+                "value": "Getting the pin definitions ported was simple, I just needed to create a <code class=\"language-rust\">PinDefinition</code> struct and populate it with the information from the Python library. The same pin definitions example showcasing pin 7 in Rust is shown below."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "let jetson_orin_pin_defs = [\n    PinDefinition {\n        gpio: HashMap::from([(164, 106)]),\n        name: HashMap::from([(164, String::from(\"PQ.06\"))]),\n        chip_sysfs: String::from(\"2200000.gpio\"),\n        board: 7,\n        bcm: 4,\n        cvm: String::from(\"MCLK05\"),\n        tegra_soc: String::from(\"GP66\"),\n        pwm_chip_sysfs: None,\n        pwm_id: None,\n    },\n    // ...\n];"
+            },
+            {
+                "type": "p",
+                "value": "Using descriptive variable names is actually helpful when reading the Rust code compared to the Python code. It's much easier to know which parameter is which when reading the Rust code."
+            },
+            {
+                "type": "p",
+                "value": "The challenging part for this part of the library was porting the <code class=\"language-python\">def get_data()</code> function to <code class=\"language-rust\">pub(crate) fn get_data() -> (String, JetsonInfo, HashMap&lt;Mode, HashMap&lt;u32, ChannelInfo&gt;&gt;)</code>. The return value in Python is a nested dictionary, which meant that I had to create maps in Rust and return a multitude of information. The last <code class=\"language-rust\">HashMap</code> return information about the pins in the different pin numbering modes. I've been using the <code class=\"language-rust\">BOARD</code> mode a lot, since it's easiest to work with. It align with the physical pin numbers on the carrier board, so it's easy to pick the right GPIO pin number."
+            },
+            {
+                "type": "p",
+                "value": "Remember the <code class=\"language-python\">output(channels, values)</code> function from Python? So, I needed to get information about the channels and then set the chosen pins to output. Let's see how that works out in Rust."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "pub fn output(&self, channels: Vec<u32>, values: Vec<Level>) -> Result<(), Error> {\n    let ch_infos = self.channels_to_infos(channels, true, false)?;\n\n    for (ch_info, value) in ch_infos.iter().zip(values.iter()) {\n        output_one(ch_info.clone(), value.clone());\n    }\n\n    Ok(())\n}"
+            },
+            {
+                "type": "p",
+                "value": "I'm using a return type of <code class=\"language-rust\">Result&lt;(), Error&gt;</code>, which is a common way in Rust to encourage error handling. If everything goes well setting up the output pins, this function will return <code class=\"language-rust\">Ok(())</code>. If something goes wrong, it will return an error which can be handled by the caller. It is important that the library handles errors because if setup functions like this one fail, the library will not be able to function properly."
+            },
+            {
+                "type": "p",
+                "value": "Outputting a value on a pin is also similar to the Python code. However, I am writing and then immediately closing the file instead of keeping it open. Therefore I split this function into two."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "fn output_one(ch_info: ChannelInfo, value: Level) {\n    let value_str = match value {\n        Level::HIGH => \"1\",\n        Level::LOW => \"0\",\n    };\n\n    write_value(ch_info, value_str.to_string());\n}"
+            },
+            {
+                "type": "p",
+                "value": "This first part is similar to the Python code. Depending on the value, the library writes either a 0 or a 1 to the file. The function to write is shown below."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "fn write_value(ch_info: ChannelInfo, value: String) {\n    let gpio_dir = format!(\"{}/{}/value\", SYSFS_ROOT, ch_info.global_gpio_name);\n    let mut f_direction = fs::OpenOptions::new().write(true).open(gpio_dir).unwrap();\n    f_direction.rewind().unwrap();\n    f_direction.write_all(value.as_bytes()).unwrap();\n}"
+            },
+            {
+                "type": "p",
+                "value": "Again, there's more to the library than just writing values to a GPIO pin. The library is still a work in progress, so it's not yet fully featured. You can follow along the progress <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/Kajatin/jetson-gpio-rust\">here</a>."
+            },
+            {
+                "type": "code",
+                "lang": "language-rust",
+                "value": "use jetson_gpio::{GPIO, Direction, Level, Mode};\n\nlet mut gpio = GPIO::new();\n// Set the pin numbering mode to BOARD\ngpio.setmode(Mode::BOARD).unwrap();\n// Set the pin to be an output pin\ngpio.setup(vec![7], Direction::OUT, Some(Level::LOW)).unwrap();\n// Turn the LED on\ngpio.output(vec![7], vec![Level::HIGH]).unwrap();\n// Clean up the GPIO pins\ngpio.cleanup(None).unwrap();"
+            },
+            {
+                "type": "p",
+                "value": "As you can see, the final Rust example is very similar to the Python example. The Rust library is still using the same familiar interface. In this working example, I'm using <code class=\"language-rust\">unwrap()</code> on the <code class=\"language-rust\">Result</code>s which are returned by the functions. In a real application, you'd handle the potential errors instead of just unwrapping the value. Calling <code class=\"language-rust\">unwrap()</code> on an error will cause the program to panic and exit."
+            }
+        ]
+    }
+}
