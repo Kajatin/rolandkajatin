@@ -113,4 +113,18 @@
 			margin-bottom: 2rem;
 		}
 	}
+
+	@media (prefers-color-scheme: dark) {
+		footer {
+			background: var(--accent-primary-dark);
+		}
+
+		footer nav a {
+			color: var(--page-background-dark);
+		}
+
+		footer svg {
+			fill: var(--page-background-dark);
+		}
+    }
 </style>

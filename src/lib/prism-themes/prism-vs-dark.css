@@ -1,38 +1,39 @@
 .vscode-light-colors {
-	color: #795E26;
-	color: #267f99;
-	color: #267f99;
-	color: #AF00DB;
-	color: #001080;
-	color: #0070C1;
-	color: #001080;
-	color: #0451a5;
+	color: #DCDCAA;
+	color: #4EC9B0;
+	color: #4EC9B0;
+	color: #C586C0;
+	color: #9CDCFE;
+	color: #4FC1FF;
+	color: #9CDCFE;
+	color: #CE9178;
+	color: #CE9178;
 	color: #d16969;
-	color: #811f3f;
-	color: #000000;
-	color: #EE0000;
-	color: #0000ff;
-	color: #EE0000;
-	color: #000000;
-	color: #AF00DB;
-	color: #a31515;
-	color: #795E26;
-	color: #098658;
+	color: #DCDCAA;
+	color: #d7ba7d;
+	color: #569cd6;
+	color: #d7ba7d;
+	color: #C8C8C8;
+	color: #C586C0;
+	color: #ce9178;
+	color: #DCDCAA;
+	color: #b5cea8;
 }
 
 /* Set the main properties of the code, code blocks, and inline code */
 code[class*="language-"],
 pre[class*="language-"] {
 	/* background: unset; */
-	color: #001080;
-	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; this is the default */
+	color: #9CDCFE;
+	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; */
 	/* The following properties are standard, please leave them as they are */
-	font-size: 1em;
+	font-size: 0.9rem;
 	direction: ltr;
 	text-align: left;
 	white-space: pre;
 	word-spacing: normal;
 	word-break: normal;
+	overflow: auto;
 	line-height: 1.2em;
 	/* The default is 4, but you could change it if you really, really want to */
 	-moz-tab-size: 4;
@@ -69,17 +70,16 @@ pre[class*="language-"] {
 	margin: 0.5em 0;
 	/* this is the default */
 	border-radius: 0.5rem;
-	border: 0.1rem solid var(--accent-primary);
-	background-color: white;
+	/* border: 0.1rem solid var(--accent-primary); */
+	border: 0.1rem solid rgb(70, 70, 70);
+	background-color: black;
 }
 
 /* Properties specific to inline code */
 :not(pre)>code[class*="language-"] {
 	padding: 0.1em;
-	/* this is the default */
-	/* border-radius: unset; */
 	white-space: normal;
-	/* this is standard */
+	background-color: #000000;
 }
 
 /**
@@ -90,15 +90,15 @@ pre[class*="language-"] {
 .token.prolog,
 .token.cdata,
 .token.doctype {
-	color: #098658;
+	color: #b5cea8;
 }
 
 .token.function {
-	color: #795E26;
+	color: #DCDCAA;
 }
 
 .token.class-name {
-	color: #267f99;
+	color: #4EC9B0;
 }
 
 .token.atrule,
@@ -112,11 +112,11 @@ pre[class*="language-"] {
 .language-json .token.boolean,
 .language-json .token.number,
 code[class*="language-css"] {
-	color: #0000ff;
+	color: #569cd6;
 }
 
 .token.constant {
-	color: #0070C1;
+	color: #4FC1FF;
 }
 
 .token.url,
@@ -126,13 +126,13 @@ code[class*="language-css"] {
 .token.char,
 .token.inserted,
 .token.number {
-	color: #098658;
+	color: #b5cea8;
 }
 
 .token.deleted,
 .token.string,
 .language-autohotkey .token.tag {
-	color: #a31515;
+	color: #ce9178;
 }
 
 .token.important {
@@ -141,7 +141,7 @@ code[class*="language-css"] {
 
 .token.selector,
 .language-autohotkey .token.keyword {
-	color: #00009f;
+	color: #569cd6;
 }
 
 .token.directive.tag .tag {

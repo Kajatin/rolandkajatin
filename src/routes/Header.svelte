@@ -109,4 +109,25 @@
 			animation: octocat-wave 560ms ease-in-out;
 		}
 	}
+
+	@media (prefers-color-scheme: dark) {
+        nav ul {
+			border: 0.1rem solid var(--accent-primary-dark);
+			box-shadow: 0.4rem 0.5rem var(--accent-primary-dark);
+		}
+
+		nav ul li {
+			color: var(--accent-primary-dark);
+		}
+
+		nav ul li:hover {
+			color: var(--page-background-dark);
+			background: var(--accent-primary-dark);
+		}
+
+		.github-corner {
+			fill: var(--accent-primary-dark);
+			color: var(--page-background-dark);
+		}
+    }
 </style>

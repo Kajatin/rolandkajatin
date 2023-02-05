@@ -87,4 +87,14 @@
 			max-width: 100%;
 		}
 	}
+
+	@media (prefers-color-scheme: dark) {
+		h2 {
+			color: var(--accent-primary-dark);
+		}
+
+		.container :global(a) {
+			color: var(--accent-secondary-dark);
+		}
+	}
 </style>

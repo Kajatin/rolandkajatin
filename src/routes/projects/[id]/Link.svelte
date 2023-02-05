@@ -26,4 +26,14 @@
 	a:hover {
 		border-bottom: 0.3rem solid var(--accent-secondary);
 	}
+
+	@media (prefers-color-scheme: dark) {
+		a {
+			color: var(--accent-secondary-dark);
+		}
+
+		a:hover {
+			border-bottom: 0.3rem solid var(--accent-secondary-dark);
+		}
+	}
 </style>

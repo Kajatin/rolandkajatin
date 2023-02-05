@@ -72,3 +72,22 @@ div.code-toolbar>.toolbar>.toolbar-item>span:focus {
 	border: 0.1rem solid var(--accent-primary);
 	box-shadow: 0.1rem 0.2rem var(--accent-primary);
 }
+
+@media (prefers-color-scheme: dark) {
+	div.code-toolbar>.toolbar>.toolbar-item>a,
+	div.code-toolbar>.toolbar>.toolbar-item>button,
+	div.code-toolbar>.toolbar>.toolbar-item>span {
+		border: 0.1rem solid white;
+		box-shadow: 0.05rem 0.1rem white;
+	}
+
+	div.code-toolbar>.toolbar>.toolbar-item>a:hover,
+	div.code-toolbar>.toolbar>.toolbar-item>a:focus,
+	div.code-toolbar>.toolbar>.toolbar-item>button:hover,
+	div.code-toolbar>.toolbar>.toolbar-item>button:focus,
+	div.code-toolbar>.toolbar>.toolbar-item>span:hover,
+	div.code-toolbar>.toolbar>.toolbar-item>span:focus {
+		border: 0.1rem solid var(--accent-primary-dark);
+		box-shadow: 0.1rem 0.2rem var(--accent-primary-dark);
+	}
+}

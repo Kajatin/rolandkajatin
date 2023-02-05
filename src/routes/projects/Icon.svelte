@@ -1,11 +1,23 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	export let icon: string;
 	export let gray: boolean = false;
 
 	import { icons } from '/src/icons.json';
 
 	let ic = icons[icon];
-	let fill = gray || !ic ? '' : ic.fill;
+	let fill = gray || !ic ? '' : ic.filldark ? ic.filldark : ic.fill;
+	onMount(() => {
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+			console.log(e, ic.fill, ic.filldark);
+			if (e.matches) {
+				fill = gray || !ic ? '' : ic.filldark ? ic.filldark : ic.fill;
+			} else {
+				fill = gray || !ic ? '' : ic.fill;
+			}
+		});
+	});
 </script>
 
 {#if ic}

@@ -194,4 +194,27 @@
 			aspect-ratio: 16/9;
 		}
 	}
+
+	@media (prefers-color-scheme: dark) {
+		.top {
+			border: 0.15rem solid rgb(70, 70, 70);
+			background: black;
+		}
+
+		.top:hover {
+			box-shadow: 0.4rem 0.5rem var(--accent-primary-dark);
+		}
+
+		.container {
+			box-shadow: 0rem 0rem var(--accent-primary-dark);
+		}
+
+		.outer a {
+			color: var(--accent-secondary-dark);
+		}
+
+		.outer a:hover {
+			border-bottom: 0.3rem solid var(--accent-secondary-dark);
+		}
+	}
 </style>
