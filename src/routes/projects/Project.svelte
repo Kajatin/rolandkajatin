@@ -64,7 +64,7 @@
 		border: 0.15rem solid black;
 		box-shadow: 0.4rem 0.5rem transparent;
         /* background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary)); */
-		background: white;
+		background: rgb(240, 240, 240);
 
 		overflow: hidden;
 	}
@@ -198,7 +198,7 @@
 	@media (prefers-color-scheme: dark) {
 		.top {
 			border: 0.15rem solid rgb(70, 70, 70);
-			background: black;
+			background: rgb(15, 15, 15);
 		}
 
 		.top:hover {

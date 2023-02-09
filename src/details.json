@@ -156,6 +156,221 @@
                 "type": "p",
                 "value": "As you can see, the final Rust example is very similar to the Python example. The Rust library is still using the same familiar interface. In this working example, I'm using <code class=\"language-rust\">unwrap()</code> on the <code class=\"language-rust\">Result</code>s which are returned by the functions. In a real application, you'd handle the potential errors instead of just unwrapping the value. Calling <code class=\"language-rust\">unwrap()</code> on an error will cause the program to panic and exit."
             }
+        ],
+        "aqua": [
+            {
+                "type": "p",
+                "value": "Drinking water is important. Yet I've found myself going for hours without drinking any. So I thought it would be fun to make an app that I can use on my phone and be reminded to drink water. This was also around the time that I got my first MacBook Pro. I used to have a ThinkPad before. Naturally, I was excited about the new OS and the possibilities it created, so I decided to make the app for iOS."
+            },
+            {
+                "type": "p",
+                "value": "I've done some Android app development before (just for fun), but I could never try the Apple ecosystem before, since such apps require Xcode that was only available on an Apple device. At any rate, I had my MacBook Pro and I was ready to go."
+            },
+            {
+                "type": "p",
+                "value": "I've been browsing around the Apple Health app for some time before I started on this project. So I've been influenced by the layout there. Normally, each component in the Health app would have a chart or some kind of visual representation of the data at the top. Underneath, there would be some trends and other information. I wanted to do something similar for my app."
+            },
+            {
+                "type": "p",
+                "value": "Alright, that covers the fundamentals about the design. However, I'm getting ahead of myself. Let's start with the basics."
+            },
+            {
+                "type": "h2",
+                "value": "MVVM software design pattern"
+            },
+            {
+                "type": "p",
+                "value": "I've chosen to work with the so-called model view view model (MVVM) software design pattern. This is a common pattern in iOS development. The idea is that you have a model that represents the data in your app. This is a single source of truth and it can sync with databases, APIs, or local persistent storage. The view is the UI that the user sees. It presents the data, but it doesn't store or modify it itself. The view model is the glue between the model and the view. It is responsible for updating the view when the model changes. It also handles user interactions and updates the model accordingly."
+            },
+            {
+                "type": "h3",
+                "value": "Model"
+            },
+            {
+                "type": "p",
+                "value": "I've integrated my app with Apple Health (more on this later), so my model is fairly simple. It stores some settings, such as the target daily water intake, and it also has a list of water intake records. The latter is synced from and to Apple Health. What interesting about the model part of the code, is that I wanted to persist the settings and some states. Therefore, the model needs to be serializable."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "import Foundation\nimport HealthKit\n\nstruct Model: Codable {\n    var target: Double = 3000\n    var healthSamples: [HKQuantitySample] = []\n    // ...\n\n    private enum CodingKeys: String, CodingKey {\n        case target // ...\n    }\n\n    init() { }\n\n    init(json: Data) throws {\n        self = try JSONDecoder().decode(Model.self, from: json)\n    }\n\n    init(url: URL) throws {\n        let data = try Data(contentsOf: url)\n        self = try Model(json: data)\n    }\n\n    func json() throws -> Data {\n        return try JSONEncoder().encode(self)\n    }\n}"
+            },
+            {
+                "type": "p",
+                "value": "Here I'm creating the model struct, which conforms to <code class=\"language-swift\">Codable</code>. This allows me to serialize and deserialize the model. I'm also using the <code class=\"language-swift\">CodingKeys</code> enum to specify which properties should be serialized. I'm not serializing all the properties, since some of them are synced from Apple Health instead. You can see there are some initialization functions. There's a default <code class=\"language-swift\">init()</code> function to initialize the model with default values. This is used when the app is ran for the first time (or saved data has been deleted). The other two functions, <code class=\"language-swift\">init(json: Data)</code> and <code class=\"language-swift\">init(url: URL)</code>, are used to deserialize the model from JSON data or a file. Finally, the <code class=\"language-swift\">func json()</code> function is used to serialize the model to JSON data (which is then cached to a file)."
+            },
+            {
+                "type": "h3",
+                "value": "View Model"
+            },
+            {
+                "type": "p",
+                "value": "The view model is by far the heaviest in terms of logic. It is responsible for saving and loading the model, syncing with Apple Health, scheduling notifications, interpreting the data from the model, presenting data to the view, and handling user interactions which trigger changes to the model."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "import SwiftUI\nimport HealthKit\n\nclass ViewModel: ObservableObject {\n    @Published private(set) var model: Model {\n        didSet {\n            autosave()\n        }\n    }\n\n    init() {\n        if let url = Autosave.url, let autosavedModel = try? Model(url: url) {\n            self.model = autosavedModel\n        } else {\n            self.model = Model()\n        }\n    }\n\n    private struct Autosave {\n        static let filename = \"Autosave.hydration\"\n        static var url: URL? {\n            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first\n            return documentDirectory?.appendingPathComponent(filename)\n        }\n    }\n\n    private func autosave() {\n        if let url = Autosave.url {\n            save(to: url)\n        }\n    }\n\n    private func save(to url: URL) {\n        let thisFunction = \"\\(String(describing: self)).\\(#function)\"\n        do {\n            let data: Data = try model.json()\n            try data.write(to: url)\n        } catch {\n            print(\"\\(thisFunction) = \\(error)\")\n        }\n    }\n}"
+            },
+            {
+                "type": "p",
+                "value": "This is a (greatly) shortened version of the view model code. There are a few interesting things going on here; let me explain. First of all, the view model is a <code class=\"language-swift\">class</code> instead of <code class=\"language-swift\">struct</code>. This is because the view model needs to be a reference type so that multiple parts of the code could interact with the same underlying model."
+            },
+            {
+                "type": "p",
+                "value": "In the <code class=\"language-swift\">init()</code> function, you can see how the model is being loaded from local storage. If there's no saved state, it'll just get initialized with default values instead. To make the model persistence smooth, I'm using a simple autosave mechanism. The model is autosaved every time it changes."
+            },
+            {
+                "type": "p",
+                "value": "The view model conforms to <code class=\"language-swift\">ObservableObject</code>. This allows the view to subscribe to changes in the model (automatically). The view model wraps the model with the <code class=\"language-swift\">@Published</code> property wrapper. This is used to notify the view when the model changes. The model has <code class=\"language-swift\">private(set)</code> access control set, which means that the view will be able to read its values but not directly change them. Instead, the view model should be the only one to change the model."
+            },
+            {
+                "type": "p",
+                "value": "For managing both the Apple Health integration and the notifications, I created separate classes which are then used within the view model. To work with Apple Health, there are two important aspects to it. First, you need to request access to the data you want to read and write. Second, you need to read and write the data using the data types that Apple Health provides. The <code class=\"language-swift\">HealthStoreManager</code> class handles both of these aspects."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {\n    guard let waterType = HKObjectType.quantityType(forIdentifier: .dietaryWater) else {\n        fatalError(\"Diatery water HealthKit object type not available\")\n    }\n    let healthTypes = Set([waterType])\n\n    let healthStore = HKHealthStore()\n    healthStore.requestAuthorization(toShare: healthTypes, read: healthTypes, completion: completion)\n}"
+            },
+            {
+                "type": "p",
+                "value": "The <code class=\"language-swift\">requestAuthorization()</code> function is used to request access to the water data type. I'm requesting both read and write access to the diatery water type, which can store the amount of water consumed by the user. The <code class=\"language-swift\">completion</code> closure is called when the user has either granted or denied access to the data type."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "func readWater(execute: @escaping () -> Void, onError: @escaping (Error?) -> Void) {\n    let waterQuery = HKSampleQuery(sampleType: diateryWaterType,\n                                   predicate: nil,\n                                   limit: HKObjectQueryNoLimit,\n                                   sortDescriptors: nil) {\n        (query, samples, error) in\n\n        guard error == nil, let samples = samples as? [HKQuantitySample] else {\n            onError(error)\n            return\n        }\n\n        DispatchQueue.main.async(execute: execute)\n    }\n\n    healthStore.execute(waterQuery)\n}"
+            },
+            {
+                "type": "p",
+                "value": "To read the data from Apple Health, I needed to set up a <code class=\"language-swift\">HKSampleQuery</code>. This will return either an error or the queried samples. If it is the former, I just return the error to the caller. If it is the latter, I call the <code class=\"language-swift\">execute</code> closure. This closure is used to update the model with the new data. Notice that the <code class=\"language-swift\">execute</code> closure is called on the main thread. This is because the view model is a reference type and the view is observing it. If the view model is updated on a background thread, the view will not be notified of the changes."
+            },
+            {
+                "type": "p",
+                "value": "Similarly to the health store, the <code class=\"language-swift\">NotificationManager</code> class is used to manage the notifications. I also needed to ask the user's permission for scheduling notifications. There are a few ways in which notifications can be scheduled. I'm using the time interval based method, which queues a new notification after a certain amount of time has passed."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "func scheduleTimeToDrinkNotification(timeInterval: TimeInterval, dateWhenShows: Date?, onError: @escaping (Error?) -> Void) {\n    let content = UNMutableNotificationContent()\n    content.title = \"Take a Sip\"\n    if let date = dateWhenShows {\n        content.body = \"You last drank \\(Date.now.relativeDateString(to: date))\"\n    } else {\n        content.body = \"Remember to stay hydrated\"\n    }\n    content.sound = UNNotificationSound.default\n    content.badge = 1\n\n    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)\n    let request = UNNotificationRequest(identifier: identifierTimeToDrink, content: content, trigger: trigger)\n    notificationCenter.add(request, withCompletionHandler: onError)\n}"
+            },
+            {
+                "type": "p",
+                "value": "The <code class=\"language-swift\">UNMutableNotificationContent()</code> function let's me create the body of the notification. I'm just setting the notification text, adding a sound, and setting the badge count on the app. As I mentioned, the trigger for the notification is based on a time interval, which is configurable. Finally, the <code class=\"language-swift\">UNNotificationRequest</code> is scheduled using the <code class=\"language-swift\">notificationCenter</code> object."
+            },
+            {
+                "type": "p",
+                "value": "The last thing I want to mention in connection with the view model are the <i>intents</i>. These are the functions that the view can use as callback to user inputs, which in turn trigger an update to the model. For example, when the user logs a new intake of water, the following intent function is executed."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "func registerDrink(volume: Double, date: Date) {\n    // Add the new water record to Health\n    let waterQuantitySample = healthStoreManager.generateQuantitySample(quantity: volume, date: date)\n    healthStoreManager.writeWaterSample(waterQuantitySample) { (success, error) in\n        if success {\n            DispatchQueue.main.async {\n                // Refresh the water records from Health\n                self.model.healthSamples.append(waterQuantitySample)\n            }\n        } else {\n            print(\"Something went wrong writing health sample: \\(String(describing: error))\")\n        }\n    }\n\n    // Cancel pending time-to-drink notifications\n    notificationManager!.cancelPreviousNotifications()\n\n    if (progress >= target) {\n        return\n    }\n\n    // Schedule notification for later\n    let midnight = Calendar(identifier: .gregorian).startOfDay(for: Date(timeIntervalSinceNow: 86400))\n    let timeUntilMidnight = midnight.timeIntervalSinceNow\n    let averageIntake: Double = 200\n    let timeInterval = (averageIntake * Double(timeUntilMidnight)) / Double(remainder)\n    let fireIn: Double = min(timeInterval, model.notificationInterval)\n    let dateWhenNotificationShows = Date(timeInterval: fireIn, since: date)\n    notificationManager!.scheduleTimeToDrinkNotification(timeInterval: fireIn, dateWhenShows: dateWhenNotificationShows) { error in\n        if error != nil {\n            // Handle any errors.\n        }\n    }\n}"
+            },
+            {
+                "type": "p",
+                "value": "First off, the new intake is logged to Apple Health. If the write operation is successful, the model is updated with the new data. Next, the pending notifications (if any) to remind the user to drink are cancelled. If the user has already reached their daily target, the function returns since there's no need to schedule any further notifications. Otherwise, a new notification is scheduled. The time interval for the notification is calculated based on the user's average intake and the time until midnight. The notification is scheduled to fire in the minimum of the calculated time interval and the user's configured notification interval. This is to ensure that the user is not bombarded with notifications if they have not reached their target."
+            },
+            {
+                "type": "h3",
+                "value": "View"
+            },
+            {
+                "type": "p",
+                "value": "To build the UI of the app, I've used SwiftUI. For an otherwise programmer like myself, I found SwiftUI to be really easy to get going with since it builds the UI right in the code. There's the <code class=\"language-swift\">View</code> type and loads of built-in views which can be nested and stacked as needed. The <code class=\"language-swift\">View</code> type is a protocol, so it can be extended to add custom views. For example, I've created many different views most of which are then nested inside other views. This allows me to reuse components and keep the code clean and readable. It also makes it easy to change the UI of the app since I can just apply any change to a single part of the code (i.e. where the view is implemented) and it'll be reflected everywhere that it's used."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "import SwiftUI\n\nstruct ContentView: View {\n    @EnvironmentObject var viewModel: ViewModel\n\n    var body: some View {\n        TabView {\n            TodayView()\n                .badge(viewModel.model.timeToDrink ? 1 : 0)\n                .tabItem {\n                    Label(\"Today\", systemImage: \"house\")\n                }\n            CalendarHistoryView()\n                .tabItem {\n                    Label(\"History\", systemImage: \"calendar\")\n                }\n        }\n    }\n}"
+            },
+            {
+                "type": "p",
+                "value": "The main entrypoint of the UI is the <code class=\"language-swift\">ContentView</code> struct that conforms to <code class=\"language-swift\">View</code>. An interesting thing is the <code class=\"language-swift\">@EnvironmentObject</code> property wrapper is used to inject the view model into the view. This allows all of the views to access the same model and the intents. Since the model is marked <code class=\"language-swift\">@Published</code> in the view model, this is all that is needed for the views to know when to update their UI."
+            },
+            {
+                "type": "p",
+                "value": "The main interface is a <code class=\"language-swift\">TabView</code> in which I have two views. The <code class=\"language-swift\">TodayView</code> tab gives complete overview of the water intake progress and the associated trends. The <code class=\"language-swift\">CalendarHistoryView</code> tab shows the user's water intake history in a calendar view. The <code class=\"language-swift\">TodayView</code> tab also has a badge that shows whether there are pending notifications. This is to remind the user to drink water if they haven't reached their target. All of this is showcased in the following video."
+            },
+            {
+                "type": "video",
+                "height": "600",
+                "value": {
+                    "light": "/src/lib/static/aqua_demo.mp4",
+                    "dark": "/src/lib/static/aqua_demo_dark.mp4"
+                }
+            },
+            {
+                "type": "h2",
+                "value": "Widget on the Home Screen"
+            },
+            {
+                "type": "p",
+                "value": "To provide a quick and easy insight into the daily progress, I also added a widget extension to the app. This widget can be added to the home screen. It updates the UI every time the user registers a new intake. The following video shows the widget in action."
+            },
+            {
+                "type": "video",
+                "height": "600",
+                "value": {
+                    "light": "/src/lib/static/aqua_widget.mp4",
+                    "dark": "/src/lib/static/aqua_widget_dark.mp4"
+                }
+            },
+            {
+                "type": "p",
+                "value": "For the configuration of the widget I'm using <code class=\"language-swift\">StaticConfiguration</code> which is one without user configurable options. There's no need to have any configuration options here, since the target is already configured in the app, and the progress is also evident. The way widgets work is that they require a piece code that provides a timeline. This timeline dictates how and when the widget needs to be updated."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {\n    var entries: [SimpleEntry] = []\n\n    // Generate a timeline consisting of a single entry\n    let currentDate = Date()\n    let entry = SimpleEntry(date: currentDate)\n    entries.append(entry)\n\n    let updateAfter = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!\n    let timeline = Timeline(entries: entries, policy: .after(updateAfter))\n    completion(timeline)\n}"
+            },
+            {
+                "type": "p",
+                "value": "The timeline for Aqua is fairly simple. There's no automatic update of the water intake. This means the widget won't need to update it's progress on its own. So I'm just creating a timeline with a single entry. The provider will ask for an update after 30 minutes, which might add an icon on the widget if it's time to drink. Otherwise the widget is automatically updated every time the model changes."
+            },
+            {
+                "type": "p",
+                "value": "The widget gets its information from the main app via <code class=\"language-swift\">UserDefaults</code> storage. This is a simple key-value store that is shared between the app and the widget. The widget can read the data from the storage and update the UI accordingly."
+            },
+            {
+                "type": "code",
+                "lang": "language-swift",
+                "value": "private func setSharedData() {\n    let sharedDefault = UserDefaults(suiteName: \"group.widget.com.gmail.roland.kajatin\")!\n    sharedDefault.set(progress, forKey: \"waterProgress\")\n    sharedDefault.set(progressNormalized, forKey: \"waterProgressNormalize\")\n    sharedDefault.set(target, forKey: \"waterTarget\")\n    sharedDefault.set(mostRecentRecord.endDate, forKey: \"waterLastDate\")\n    sharedDefault.set(model.timeToDrink, forKey: \"waterTimeToDrink\")\n\n    // Reload the widget's timeline\n    WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")\n}"
+            },
+            {
+                "type": "p",
+                "value": "I'm just setting the values that I need in the widget. The <code class=\"language-swift\">WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")</code> call is what triggers the widget to update. The widget will then read the values from the storage and update the UI."
+            },
+            {
+                "type": "image",
+                "value": "/src/lib/static/aqua_lock_screen.png"
+            },
+            {
+                "type": "p",
+                "value": "Yes; the widget is also available on the lock screen. 😎"
+            },
+            {
+                "type": "h2",
+                "value": "Apple Watch integration"
+            },
+            {
+                "type": "p",
+                "value": "The fun doesn't end here. I also added an Apple Watch app to the project. This app is a companion to the main app. It allows the user to register water intake directly from the watch. The watch app is also a good way to show the user's progress on the watch face. The following video shows the watch app in action."
+            },
+            {
+                "type": "video",
+                "height": "250",
+                "value": {
+                    "light": "/src/lib/static/aqua_watch.mp4",
+                    "dark": "/src/lib/static/aqua_watch.mp4"
+                }
+            },
+            {
+                "type": "p",
+                "value": "The watch app uses the same model and view model as the main app. Therefore, there's no need to have any additional data sharing options. The design of the watch app is different though. Since the watch has a much smaller screen, I opted for a more compact design. It consists of 3 tabs. One for some basic settings, like the target intake. One for the main view, which shows the progress and previous intakes. And the last one is for the previous week's intake records with a chart."
+            }
         ]
     }
 }

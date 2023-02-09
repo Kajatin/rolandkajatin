@@ -4,9 +4,20 @@
 	const project = data.props.project;
 	const detail = data.props.detail;
 
+	import { onMount } from 'svelte';
 	import Code from './Code.svelte';
 	import Link from './Link.svelte';
 	import Icon from '../Icon.svelte';
+
+	let mode = 'light';
+	onMount(() => {
+		// add event listener to color scheme and evaluate it immediately on mount
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		mediaQuery.addEventListener('change', (e) => {
+			mode = e.matches ? 'dark' : 'light';
+		});
+		mode = mediaQuery.matches ? 'dark' : 'light';
+	});
 </script>
 
 <div class="container">
@@ -29,8 +40,25 @@
 			<h1>{item.value}</h1>
 		{:else if item.type === 'h2'}
 			<h2>{item.value}</h2>
+		{:else if item.type === 'h3'}
+			<h3>{item.value}</h3>
 		{:else if item.type === 'p'}
 			<p>{@html item.value}</p>
+		{:else if item.type === 'video'}
+			<!-- svelte-ignore a11y-media-has-caption -->
+			{#if mode === 'dark'}
+				<video autoplay muted playsinline loop height={item.height}>
+					<source src={item.value.dark} type="video/mp4" />
+				</video>
+			{:else if mode === 'light'}
+				<video autoplay muted playsinline loop height={item.height}>
+					<source src={item.value.light} type="video/mp4" />
+				</video>
+			{/if}
+		{:else if item.type === 'image'}
+			<div class="img-container">
+				<img src={item.value} />
+			</div>
 		{/if}
 	{/each}
 </div>
@@ -51,9 +79,37 @@
 		opacity: 0.85;
 	}
 
+	h3 {
+		margin: 0;
+		opacity: 0.9;
+	}
+
 	p {
 		opacity: 0.8;
 		font-size: 1.1rem;
+	}
+
+	video {
+		width: 100%;
+		background: rgb(240, 240, 240);
+		border: 0.1rem solid black;
+		border-radius: 0.5rem;
+		padding: 1rem 0;
+	}
+
+	.img-container {
+		width: 100%;
+		background: rgb(240, 240, 240);
+		border: 0.1rem solid black;
+		border-radius: 0.5rem;
+		padding: 1rem 0;
+		display: flex;
+		justify-content: center;
+	}
+
+	img {
+		width: 40%;
+		border-radius: 1rem;
 	}
 
 	.logos {
@@ -95,6 +151,16 @@
 
 		.container :global(a) {
 			color: var(--accent-secondary-dark);
+		}
+
+		video {
+			background: rgb(15, 15, 15);
+			border: 0.1rem solid rgb(70, 70, 70);
+		}
+
+		.img-container {
+			background: rgb(15, 15, 15);
+			border: 0.1rem solid rgb(70, 70, 70);
 		}
 	}
 </style>

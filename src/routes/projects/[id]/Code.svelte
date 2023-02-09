@@ -6,6 +6,7 @@
 
 	import '$lib/prism-components/prism-rust';
 	import '$lib/prism-components/prism-python';
+	import '$lib/prism-components/prism-swift';
 
 	import '$lib/prism-plugins/line-numbers/prism-line-numbers.js';
 	import '$lib/prism-plugins/toolbar/prism-toolbar.js';
@@ -27,20 +28,6 @@
 	@import url('$lib/prism-plugins/line-numbers/prism-line-numbers.css');
 	@import url('$lib/prism-plugins/toolbar/prism-toolbar.css');
 
-	@import url('$lib/prism-themes/prism-vs-light.css');
-	@import url('$lib/prism-themes/prism-vs-dark.css');
-
-	@media (prefers-color-scheme: light) {
-		[class^='prism-vs-dark'],
-		[class*=' prism-vs-dark'] {
-			display: none;
-		}
-	}
-
-	@media (prefers-color-scheme: dark) {
-		[class^='prism-vs-light'],
-		[class*=' prism-vs-light'] {
-			display: none;
-		}
-	}
+	@import url('$lib/prism-themes/prism-vs-light.css') (prefers-color-scheme: light);
+	@import url('$lib/prism-themes/prism-vs-dark.css') (prefers-color-scheme: dark);
 </style>

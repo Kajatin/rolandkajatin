@@ -72,7 +72,7 @@ pre[class*="language-"] {
 	border-radius: 0.5rem;
 	/* border: 0.1rem solid var(--accent-primary); */
 	border: 0.1rem solid black;
-	background-color: white;
+	background-color: rgb(240, 240, 240);
 }
 
 /* Properties specific to inline code */
