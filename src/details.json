@@ -297,8 +297,8 @@
                 "type": "video",
                 "height": "600",
                 "value": {
-                    "light": "/src/lib/static/aqua_demo.mp4",
-                    "dark": "/src/lib/static/aqua_demo_dark.mp4"
+                    "light": "/projects/aqua_demo.mp4",
+                    "dark": "/projects/aqua_demo_dark.mp4"
                 }
             },
             {
@@ -313,8 +313,8 @@
                 "type": "video",
                 "height": "600",
                 "value": {
-                    "light": "/src/lib/static/aqua_widget.mp4",
-                    "dark": "/src/lib/static/aqua_widget_dark.mp4"
+                    "light": "/projects/aqua_widget.mp4",
+                    "dark": "/projects/aqua_widget_dark.mp4"
                 }
             },
             {
@@ -345,7 +345,7 @@
             },
             {
                 "type": "image",
-                "value": "/src/lib/static/aqua_lock_screen.png"
+                "value": "/projects/aqua_lock_screen.png"
             },
             {
                 "type": "p",
@@ -363,8 +363,8 @@
                 "type": "video",
                 "height": "250",
                 "value": {
-                    "light": "/src/lib/static/aqua_watch.mp4",
-                    "dark": "/src/lib/static/aqua_watch.mp4"
+                    "light": "/projects/aqua_watch.mp4",
+                    "dark": "/projects/aqua_watch.mp4"
                 }
             },
             {
