@@ -47,13 +47,17 @@
 		{:else if item.type === 'video'}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			{#if mode === 'dark'}
-				<video autoplay muted playsinline loop height={item.height}>
-					<source src={item.value.dark} type="video/mp4" />
-				</video>
+				<div class="video-container">
+					<video autoplay muted playsinline loop height={item.height}>
+						<source src={item.value.dark} type="video/mp4" />
+					</video>
+				</div>
 			{:else if mode === 'light'}
-				<video autoplay muted playsinline loop height={item.height}>
-					<source src={item.value.light} type="video/mp4" />
-				</video>
+				<div class="video-container">
+					<video autoplay muted playsinline loop height={item.height}>
+						<source src={item.value.light} type="video/mp4" />
+					</video>
+				</div>
 			{/if}
 		{:else if item.type === 'image'}
 			<div class="img-container">
@@ -89,12 +93,18 @@
 		font-size: 1.1rem;
 	}
 
-	video {
+	.video-container {
 		width: 100%;
 		background: rgb(240, 240, 240);
 		border: 0.1rem solid black;
 		border-radius: 0.5rem;
 		padding: 1rem 0;
+		display: flex;
+		justify-content: center;
+	}
+
+	video {
+		border-radius: 2.6rem;
 	}
 
 	.img-container {
@@ -153,7 +163,7 @@
 			color: var(--accent-secondary-dark);
 		}
 
-		video {
+		.video-container {
 			background: rgb(15, 15, 15);
 			border: 0.1rem solid rgb(70, 70, 70);
 		}

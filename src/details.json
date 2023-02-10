@@ -297,8 +297,8 @@
                 "type": "video",
                 "height": "600",
                 "value": {
-                    "light": "/projects/aqua_demo.mp4",
-                    "dark": "/projects/aqua_demo_dark.mp4"
+                    "light": "/projects/aqua_demo.mov",
+                    "dark": "/projects/aqua_demo_dark.mov"
                 }
             },
             {
@@ -313,8 +313,8 @@
                 "type": "video",
                 "height": "600",
                 "value": {
-                    "light": "/projects/aqua_widget.mp4",
-                    "dark": "/projects/aqua_widget_dark.mp4"
+                    "light": "/projects/aqua_widget.mov",
+                    "dark": "/projects/aqua_widget_dark.mov"
                 }
             },
             {
