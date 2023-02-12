@@ -62,6 +62,7 @@
 			{/if}
 		{:else if item.type === 'image'}
 			<div class="img-container">
+				<!-- svelte-ignore a11y-missing-attribute -->
 				<img src={item.value} />
 			</div>
 		{:else if item.type === 'sketch'}

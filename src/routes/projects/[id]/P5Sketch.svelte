@@ -12,7 +12,7 @@
 		};
 	};`;
 
-	const sketchParsed: Sketch = eval(sketch);
+	const sketchParsed: Sketch = (0, eval)(sketch);
 </script>
 
 <div class="sketch">
