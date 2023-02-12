@@ -30,6 +30,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"p5-svelte": "^3.1.2",
 		"prism-svelte": "^0.5.0",
 		"prismjs": "^1.29.0"
 	}

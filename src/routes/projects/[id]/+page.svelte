@@ -8,6 +8,7 @@
 	import Code from './Code.svelte';
 	import Link from './Link.svelte';
 	import Icon from '../Icon.svelte';
+	import P5Sketch from './P5Sketch.svelte';
 
 	let mode = 'light';
 	onMount(() => {
@@ -63,6 +64,8 @@
 			<div class="img-container">
 				<img src={item.value} />
 			</div>
+		{:else if item.type === 'sketch'}
+			<P5Sketch sketch={item.value} />
 		{/if}
 	{/each}
 </div>
