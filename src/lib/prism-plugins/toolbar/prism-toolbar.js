@@ -1,5 +1,4 @@
 (function () {
-
 	if (typeof Prism === 'undefined' || typeof document === 'undefined') {
 		return;
 	}
@@ -24,7 +23,7 @@
 	 * @param {string} key
 	 * @param {ButtonOptions|Function} opts
 	 */
-	var registerButton = Prism.plugins.toolbar.registerButton = function (key, opts) {
+	var registerButton = (Prism.plugins.toolbar.registerButton = function (key, opts) {
 		var callback;
 
 		if (typeof opts === 'function') {
@@ -61,8 +60,8 @@
 			return;
 		}
 
-		callbacks.push(map[key] = callback);
-	};
+		callbacks.push((map[key] = callback));
+	});
 
 	/**
 	 * Returns the callback order of the given element.
@@ -90,7 +89,7 @@
 	 *
 	 * @param env
 	 */
-	var hook = Prism.plugins.toolbar.hook = function (env) {
+	var hook = (Prism.plugins.toolbar.hook = function (env) {
 		// Check if inline or actual code block (credit to line-numbers plugin)
 		var pre = env.element.parentNode;
 		if (!pre || !/pre/i.test(pre.nodeName)) {
@@ -137,7 +136,7 @@
 
 		// Add our toolbar to the currently created wrapper of <pre> tag
 		wrapper.appendChild(toolbar);
-	};
+	});
 
 	registerButton('label', function (env) {
 		var pre = env.element.parentNode;
@@ -149,12 +148,15 @@
 			return;
 		}
 
-		var element; var template;
+		var element;
+		var template;
 		var text = pre.getAttribute('data-label');
 		try {
 			// Any normal text will blow up this selector.
 			template = document.querySelector('template#' + text);
-		} catch (e) { /* noop */ }
+		} catch (e) {
+			/* noop */
+		}
 
 		if (template) {
 			element = template.content;
@@ -176,4 +178,4 @@
 	 * Register the toolbar with Prism.
 	 */
 	Prism.hooks.add('complete', hook);
-}());
+})();

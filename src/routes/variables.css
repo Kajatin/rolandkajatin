@@ -1,11 +1,11 @@
 :root {
-    --accent-primary: rgb(95, 86, 197);
-    --accent-secondary: rgb(39, 184, 141);
-    --page-background: rgb(252, 251, 244);
+	--accent-primary: rgb(95, 86, 197);
+	--accent-secondary: rgb(39, 184, 141);
+	--page-background: rgb(252, 251, 244);
 
-    --accent-primary-dark: rgb(155, 213, 93);
-    /* --accent-primary-dark: rgb(237, 215, 53); */
-    --accent-secondary-dark: rgb(210, 232, 186);
-    /* --accent-secondary-dark: rgb(96, 116, 244); */
-    --page-background-dark: rgb(47, 46, 44);
+	--accent-primary-dark: rgb(155, 213, 93);
+	/* --accent-primary-dark: rgb(237, 215, 53); */
+	--accent-secondary-dark: rgb(210, 232, 186);
+	/* --accent-secondary-dark: rgb(96, 116, 244); */
+	--page-background-dark: rgb(47, 46, 44);
 }

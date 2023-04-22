@@ -1,28 +1,28 @@
 .vscode-light-colors {
-	color: #795E26;
+	color: #795e26;
 	color: #267f99;
 	color: #267f99;
-	color: #AF00DB;
+	color: #af00db;
 	color: #001080;
-	color: #0070C1;
+	color: #0070c1;
 	color: #001080;
 	color: #0451a5;
 	color: #d16969;
 	color: #811f3f;
 	color: #000000;
-	color: #EE0000;
+	color: #ee0000;
 	color: #0000ff;
-	color: #EE0000;
+	color: #ee0000;
 	color: #000000;
-	color: #AF00DB;
+	color: #af00db;
 	color: #a31515;
-	color: #795E26;
+	color: #795e26;
 	color: #098658;
 }
 
 /* Set the main properties of the code, code blocks, and inline code */
-code[class*="language-"],
-pre[class*="language-"] {
+code[class*='language-'],
+pre[class*='language-'] {
 	/* background: unset; */
 	color: #001080;
 	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; */
@@ -47,24 +47,24 @@ pre[class*="language-"] {
 }
 
 /* Optional: What the code looks like when highlighted */
-code[class*="language-"]::-moz-selection,
-code[class*="language-"] ::-moz-selection,
-pre[class*="language-"]::-moz-selection,
-pre[class*="language-"] ::-moz-selection {
-	background: #C1DEF1;
+code[class*='language-']::-moz-selection,
+code[class*='language-'] ::-moz-selection,
+pre[class*='language-']::-moz-selection,
+pre[class*='language-'] ::-moz-selection {
+	background: #c1def1;
 	/* color: unset; */
 }
 
-code[class*="language-"]::selection,
-code[class*="language-"] ::selection,
-pre[class*="language-"]::selection,
-pre[class*="language-"] ::selection {
-	background: #C1DEF1;
+code[class*='language-']::selection,
+code[class*='language-'] ::selection,
+pre[class*='language-']::selection,
+pre[class*='language-'] ::selection {
+	background: #c1def1;
 	/* color: unset; */
 }
 
 /* Properties specific to code blocks */
-pre[class*="language-"] {
+pre[class*='language-'] {
 	padding: 1em;
 	/* this is standard */
 	margin: 0.5em 0;
@@ -76,7 +76,7 @@ pre[class*="language-"] {
 }
 
 /* Properties specific to inline code */
-:not(pre)>code[class*="language-"] {
+:not(pre) > code[class*='language-'] {
 	padding: 0.1em;
 	white-space: normal;
 	background-color: #f7f7f9;
@@ -94,7 +94,7 @@ pre[class*="language-"] {
 }
 
 .token.function {
-	color: #795E26;
+	color: #795e26;
 }
 
 .token.class-name {
@@ -111,12 +111,12 @@ pre[class*="language-"] {
 .language-autohotkey .token.selector,
 .language-json .token.boolean,
 .language-json .token.number,
-code[class*="language-css"] {
+code[class*='language-css'] {
 	color: #0000ff;
 }
 
 .token.constant {
-	color: #0070C1;
+	color: #0070c1;
 }
 
 .token.url,
@@ -146,10 +146,10 @@ code[class*="language-css"] {
 
 .token.directive.tag .tag {
 	background: #ffff00;
-	color: #393A34;
+	color: #393a34;
 }
 
-.line-numbers .line-numbers-rows>span:before {
+.line-numbers .line-numbers-rows > span:before {
 	color: #a5a5a5;
 }
 

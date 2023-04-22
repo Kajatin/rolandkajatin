@@ -1,10 +1,10 @@
-pre[class*="language-"].line-numbers {
+pre[class*='language-'].line-numbers {
 	position: relative;
 	padding-left: 4.8em;
 	counter-reset: linenumber;
 }
 
-pre[class*="language-"].line-numbers>code {
+pre[class*='language-'].line-numbers > code {
 	position: relative;
 	white-space: inherit;
 }
@@ -24,15 +24,14 @@ pre[class*="language-"].line-numbers>code {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-
 }
 
-.line-numbers-rows>span {
+.line-numbers-rows > span {
 	display: block;
 	counter-increment: linenumber;
 }
 
-.line-numbers-rows>span:before {
+.line-numbers-rows > span:before {
 	content: counter(linenumber);
 	/* color: #999; */
 	display: block;

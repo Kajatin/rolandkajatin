@@ -1,5 +1,4 @@
 (function () {
-
 	if (typeof Prism === 'undefined' || typeof document === 'undefined') {
 		return;
 	}
@@ -18,11 +17,10 @@
 	 */
 	var NEW_LINE_EXP = /\n(?!$)/g;
 
-
 	/**
 	 * Global exports
 	 */
-	var config = Prism.plugins.lineNumbers = {
+	var config = (Prism.plugins.lineNumbers = {
 		/**
 		 * Get node for provided line number
 		 *
@@ -77,7 +75,7 @@
 		 * @type {boolean}
 		 */
 		assumeViewportIndependence: true
-	};
+	});
 
 	/**
 	 * Resizes the given elements.
@@ -95,38 +93,40 @@
 			return;
 		}
 
-		var infos = elements.map(function (element) {
-			var codeElement = element.querySelector('code');
-			var lineNumbersWrapper = element.querySelector('.line-numbers-rows');
-			if (!codeElement || !lineNumbersWrapper) {
-				return undefined;
-			}
+		var infos = elements
+			.map(function (element) {
+				var codeElement = element.querySelector('code');
+				var lineNumbersWrapper = element.querySelector('.line-numbers-rows');
+				if (!codeElement || !lineNumbersWrapper) {
+					return undefined;
+				}
 
-			/** @type {HTMLElement} */
-			var lineNumberSizer = element.querySelector('.line-numbers-sizer');
-			var codeLines = codeElement.textContent.split(NEW_LINE_EXP);
+				/** @type {HTMLElement} */
+				var lineNumberSizer = element.querySelector('.line-numbers-sizer');
+				var codeLines = codeElement.textContent.split(NEW_LINE_EXP);
 
-			if (!lineNumberSizer) {
-				lineNumberSizer = document.createElement('span');
-				lineNumberSizer.className = 'line-numbers-sizer';
+				if (!lineNumberSizer) {
+					lineNumberSizer = document.createElement('span');
+					lineNumberSizer.className = 'line-numbers-sizer';
 
-				codeElement.appendChild(lineNumberSizer);
-			}
+					codeElement.appendChild(lineNumberSizer);
+				}
 
-			lineNumberSizer.innerHTML = '0';
-			lineNumberSizer.style.display = 'block';
+				lineNumberSizer.innerHTML = '0';
+				lineNumberSizer.style.display = 'block';
 
-			var oneLinerHeight = lineNumberSizer.getBoundingClientRect().height;
-			lineNumberSizer.innerHTML = '';
+				var oneLinerHeight = lineNumberSizer.getBoundingClientRect().height;
+				lineNumberSizer.innerHTML = '';
 
-			return {
-				element: element,
-				lines: codeLines,
-				lineHeights: [],
-				oneLinerHeight: oneLinerHeight,
-				sizer: lineNumberSizer,
-			};
-		}).filter(Boolean);
+				return {
+					element: element,
+					lines: codeLines,
+					lineHeights: [],
+					oneLinerHeight: oneLinerHeight,
+					sizer: lineNumberSizer
+				};
+			})
+			.filter(Boolean);
 
 		infos.forEach(function (info) {
 			var lineNumberSizer = info.sizer;
@@ -181,7 +181,7 @@
 			return null;
 		}
 
-		return window.getComputedStyle ? getComputedStyle(element) : (element.currentStyle || null);
+		return window.getComputedStyle ? getComputedStyle(element) : element.currentStyle || null;
 	}
 
 	var lastWidth = undefined;
@@ -248,5 +248,4 @@
 		env.plugins = env.plugins || {};
 		env.plugins.lineNumbers = true;
 	});
-
-}());
+})();

@@ -3,17 +3,17 @@
 </script>
 
 <a
-    class="sourcecode"
-    href={url}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="View source on GitHub"
+	class="sourcecode"
+	href={url}
+	target="_blank"
+	rel="noopener noreferrer"
+	aria-label="View source on GitHub"
 >
-    Source code
+	Source code
 </a>
 
 <style>
-    a {
+	a {
 		text-decoration: none;
 		font-weight: 600;
 		margin: 0;

@@ -111,7 +111,7 @@
 	}
 
 	@media (prefers-color-scheme: dark) {
-        nav ul {
+		nav ul {
 			border: 0.1rem solid var(--accent-primary-dark);
 			box-shadow: 0.4rem 0.5rem var(--accent-primary-dark);
 		}
@@ -129,5 +129,5 @@
 			fill: var(--accent-primary-dark);
 			color: var(--page-background-dark);
 		}
-    }
+	}
 </style>

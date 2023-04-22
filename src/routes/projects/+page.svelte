@@ -1,6 +1,6 @@
 <script>
 	import Project from './Project.svelte';
-    import { projects } from '/src/projects.json';
+	import { projects } from '/src/projects.json';
 </script>
 
 <h1>Projects</h1>

@@ -1,30 +1,30 @@
 .vscode-light-colors {
-	color: #DCDCAA;
-	color: #4EC9B0;
-	color: #4EC9B0;
-	color: #C586C0;
-	color: #9CDCFE;
-	color: #4FC1FF;
-	color: #9CDCFE;
-	color: #CE9178;
-	color: #CE9178;
+	color: #dcdcaa;
+	color: #4ec9b0;
+	color: #4ec9b0;
+	color: #c586c0;
+	color: #9cdcfe;
+	color: #4fc1ff;
+	color: #9cdcfe;
+	color: #ce9178;
+	color: #ce9178;
 	color: #d16969;
-	color: #DCDCAA;
+	color: #dcdcaa;
 	color: #d7ba7d;
 	color: #569cd6;
 	color: #d7ba7d;
-	color: #C8C8C8;
-	color: #C586C0;
+	color: #c8c8c8;
+	color: #c586c0;
 	color: #ce9178;
-	color: #DCDCAA;
+	color: #dcdcaa;
 	color: #b5cea8;
 }
 
 /* Set the main properties of the code, code blocks, and inline code */
-code[class*="language-"],
-pre[class*="language-"] {
+code[class*='language-'],
+pre[class*='language-'] {
 	/* background: unset; */
-	color: #9CDCFE;
+	color: #9cdcfe;
 	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; */
 	/* The following properties are standard, please leave them as they are */
 	font-size: 0.9rem;
@@ -47,24 +47,24 @@ pre[class*="language-"] {
 }
 
 /* Optional: What the code looks like when highlighted */
-code[class*="language-"]::-moz-selection,
-code[class*="language-"] ::-moz-selection,
-pre[class*="language-"]::-moz-selection,
-pre[class*="language-"] ::-moz-selection {
-	background: #C1DEF1;
+code[class*='language-']::-moz-selection,
+code[class*='language-'] ::-moz-selection,
+pre[class*='language-']::-moz-selection,
+pre[class*='language-'] ::-moz-selection {
+	background: #c1def1;
 	/* color: unset; */
 }
 
-code[class*="language-"]::selection,
-code[class*="language-"] ::selection,
-pre[class*="language-"]::selection,
-pre[class*="language-"] ::selection {
-	background: #C1DEF1;
+code[class*='language-']::selection,
+code[class*='language-'] ::selection,
+pre[class*='language-']::selection,
+pre[class*='language-'] ::selection {
+	background: #c1def1;
 	/* color: unset; */
 }
 
 /* Properties specific to code blocks */
-pre[class*="language-"] {
+pre[class*='language-'] {
 	padding: 1em;
 	/* this is standard */
 	margin: 0.5em 0;
@@ -76,7 +76,7 @@ pre[class*="language-"] {
 }
 
 /* Properties specific to inline code */
-:not(pre)>code[class*="language-"] {
+:not(pre) > code[class*='language-'] {
 	padding: 0.1em;
 	white-space: normal;
 	background-color: #000000;
@@ -94,11 +94,11 @@ pre[class*="language-"] {
 }
 
 .token.function {
-	color: #DCDCAA;
+	color: #dcdcaa;
 }
 
 .token.class-name {
-	color: #4EC9B0;
+	color: #4ec9b0;
 }
 
 .token.atrule,
@@ -111,12 +111,12 @@ pre[class*="language-"] {
 .language-autohotkey .token.selector,
 .language-json .token.boolean,
 .language-json .token.number,
-code[class*="language-css"] {
+code[class*='language-css'] {
 	color: #569cd6;
 }
 
 .token.constant {
-	color: #4FC1FF;
+	color: #4fc1ff;
 }
 
 .token.url,
@@ -146,10 +146,10 @@ code[class*="language-css"] {
 
 .token.directive.tag .tag {
 	background: #ffff00;
-	color: #393A34;
+	color: #393a34;
 }
 
-.line-numbers .line-numbers-rows>span:before {
+.line-numbers .line-numbers-rows > span:before {
 	color: #a5a5a5;
 }
 

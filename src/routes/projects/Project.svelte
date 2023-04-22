@@ -33,12 +33,7 @@
 				<p>{project.description}</p>
 			</div>
 			<div class="links">
-				<a
-					href="/projects/{project.id}"
-					aria-label="View source on GitHub"
-				>
-					Read more
-				</a>
+				<a href="/projects/{project.id}" aria-label="View source on GitHub"> Read more </a>
 				<a
 					href={project.github}
 					target="_blank"
