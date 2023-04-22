@@ -53,12 +53,12 @@
 
 		width: 100%;
 		height: 100%;
-		max-width: 80vw;
+		max-width: 60vw;
 
 		border-radius: 1rem;
 		border: 0.15rem solid black;
 		box-shadow: 0.4rem 0.5rem transparent;
-        /* background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary)); */
+		/* background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary)); */
 		background: rgb(240, 240, 240);
 
 		overflow: hidden;
@@ -79,8 +79,9 @@
 
 	img {
 		width: 40%;
-		aspect-ratio: 3/2;
+		aspect-ratio: 1.2;
 		object-fit: cover;
+		overflow: hidden;
 		object-position: left;
 		margin: 0;
 		padding: 0;

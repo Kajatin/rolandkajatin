@@ -1,36 +1,52 @@
 {
-    "projects": [
-        {
-            "id": "gpio",
-            "name": "Jetson GPIO port to Rust",
-            "description": "The Jetson platfrom from NVIDIA is a popular platform for embedded development. One of the features these boards have are the GPIO pins. These pins are able to control external devices using the Jetson.GPIO library which is written in Python. This project is a port of the Jetson.GPIO library to Rust.",
-            "cover": "rust-jetson-gpio.png",
-            "icons": [ "nvidia", "rust" ],
-            "github": "https://github.com/Kajatin/jetson-gpio-rust"
-        },
-        {
-            "id": "aqua",
-            "name": "Aqua - Water Tracker App",
-            "description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
-            "cover": "swift-aqua.png",
-            "icons": [ "swift", "xcode" ],
-            "github": "https://github.com/Kajatin/Aqua"
-        },
-        {
-            "id": "art",
-            "name": "Art made with code",
-            "description": "I've always been fascinated by emergent art with code. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the p5.js library.",
-            "cover": "art-automata.png",
-            "icons": [ "p5js", "javascript" ],
-            "github": "https://github.com/Kajatin/artistic-code"
-        },
-        {
-            "id": "website",
-            "name": "Personal website",
-            "description": "Well, you're looking at it 👀. This website is built using SvelteKit and hosted on Cloudflare Pages. The source code is available on GitHub.",
-            "cover": "svelte-personal-website.png",
-            "icons": [ "cloudflare", "svelte", "nodejs", "typescript" ],
-            "github": "https://github.com/Kajatin/rolandkajatin"
-        }
-    ]
+	"projects": [
+		{
+			"id": "gpio",
+			"name": "Jetson GPIO port to Rust",
+			"description": "The Jetson platfrom from NVIDIA is a popular platform for embedded development. One of the features these boards have are the GPIO pins. These pins are able to control external devices using the Jetson.GPIO library which is written in Python. This project is a port of the Jetson.GPIO library to Rust.",
+			"cover": "rust-jetson-gpio.png",
+			"icons": ["nvidia", "rust"],
+			"github": "https://github.com/Kajatin/jetson-gpio-rust"
+		},
+		{
+			"id": "aqua",
+			"name": "Aqua - Water Tracker App",
+			"description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
+			"cover": "swift-aqua.png",
+			"icons": ["swift", "xcode"],
+			"github": "https://github.com/Kajatin/Aqua"
+		},
+		{
+			"id": "flashcards",
+			"name": "Flashcards",
+			"description": "Learning Danish is hard. I made this app to create collections of words with explanations that I could then practice and learn over time. I submitted this app to the 2023 Supabase hackathon.",
+			"cover": "flashcards.png",
+			"icons": ["supabase", "nextjs"],
+			"github": "https://github.com/Kajatin/supabase-flashcard"
+		},
+		{
+			"id": "art",
+			"name": "Art made with code",
+			"description": "I've always been fascinated by emergent art with code. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the p5.js library.",
+			"cover": "art-automata.png",
+			"icons": ["p5js", "javascript"],
+			"github": "https://github.com/Kajatin/artistic-code"
+		},
+		{
+			"id": "dnslookup",
+			"name": "DNS lookup",
+			"description": "A saw a good YouTube video about the outage Facebook had in 2023. Apparently there were some problems with their name servers. This tool is a dumb version of the dig command.",
+			"cover": "dns.png",
+			"icons": ["rust"],
+			"github": "https://github.com/Kajatin/dns-lookup"
+		},
+		{
+			"id": "website",
+			"name": "Personal website",
+			"description": "Well, you're looking at it 👀. This website is built using SvelteKit and hosted on Cloudflare Pages. The source code is available on GitHub.",
+			"cover": "svelte-personal-website.png",
+			"icons": ["cloudflare", "svelte", "nodejs", "typescript"],
+			"github": "https://github.com/Kajatin/rolandkajatin"
+		}
+	]
 }

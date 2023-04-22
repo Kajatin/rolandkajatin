@@ -1,398 +1,432 @@
 {
-    "details": {
-        "gpio": [
-            {
-                "type": "p",
-                "value": "The Jetson modules by NVIDIA are a popular choice for embedded systems. They are powerful enough to run modern machine learning algorithms and are also cheap enough to be used in IoT devices. I work a lot with the Jetson Xavier NX module and develop computer vision applications for it."
-            },
-            {
-                "type": "p",
-                "value": "One of the requirements of running a computer vision application all-day round is to ensure there's enough light even during the dark hours. My team and I used a pair of infra-red LEDs to illuminate the scene. This is the go-to choice for vision devices that are required to work in the dark, since the wavelength of the light sources are outside the visual range of the human eye. This makes this light be invisible for humans, which is a must have in order not to disturb the users of the device while they were asleep."
-            },
-            {
-                "type": "p",
-                "value": "The LEDs are mounted on a simple controller board, which is then connected to the Jetson module via the carrier board's GPIO pins. These pins are physically connected to the module and can be used to send signals as either inputs or outputs from the module. In this case, we're using the pins as outputs to control the LEDs."
-            },
-            {
-                "type": "p",
-                "value": "The pins can be controlled by software. NVIDIA has their own Python based library <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/NVIDIA/jetson-gpio\">jetson-gpio</a> which is using a similar interface to the popular <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://pypi.org/project/RPi.GPIO/\">RPi.GPIO</a> library for the Raspberry Pi."
-            },
-            {
-                "type": "code",
-                "lang": "language-python",
-                "value": "import RPi.GPIO as GPIO\n\n# This is the pin number of the GPIO pin that the LED is connected to (in BOARD mode)\npin = 7\n# Set the pin numbering mode to BOARD\nGPIO.setmode(GPIO.BOARD)\n# Set the pin to be an output pin\nGPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)\n# Turn the LED on\nGPIO.output(pin, GPIO.HIGH)\n# Clean up the GPIO pins\nGPIO.cleanup()"
-            },
-            {
-                "type": "p",
-                "value": "The pins to be controlled can be defined in four different modes. The snippet above uses the <code class=\"language-python\">BOARD</code> mode. This mode uses the physical pin numbers of the Jetson module. Then, the pin is configured as output, meaning that it can be used to send a signal out. The initial output is also set to low, which means that the LEDs will be off by default. Finally, the LED is turned on by setting the output to high. The <code class=\"language-python\">cleanup()</code> function is used to reset the system to their default state."
-            },
-            {
-                "type": "p",
-                "value": "This is simple and easy. Yet, there's a problem. The library is only available for Python, whereas I'd prefer to use a faster and pre-compiled language such as Rust. The latter simplifies deployment and execution, since it's a self contained program with a single executable and no environment needed. It's also more fun.🤓"
-            },
-            {
-                "type": "h2",
-                "value": "Let's dig deeper"
-            },
-            {
-                "type": "p",
-                "value": "Before I could port the library to Rust, I needed to understand how the Python library was working. I also wanted to retain the same interface in the Rust module. This would make it easier for people to use the library, since all the function and interfaces will be familiar and recognizable."
-            },
-            {
-                "type": "p",
-                "value": "The first thing I wanted to find out was the way the library actually interfaced with the pins."
-            },
-            {
-                "type": "code",
-                "lang": "language-python",
-                "value": "def output(channels, values):\n    ch_infos = _channels_to_infos(channels, need_gpio=True)\n\n    for ch_info, value in zip(ch_infos, values):\n        _output_one(ch_info, value)"
-            },
-            {
-                "type": "p",
-                "value": "Alright, first I need to get information about the channels (<code class=\"language-python\">_channels_to_infos()</code>). Then, I need to iterate over the channels and set the output value for each one of them (<code class=\"language-python\">_output_one()</code>)."
-            },
-            {
-                "type": "code",
-                "lang": "language-python",
-                "value": "def _output_one(ch_info, value):\n    ch_info.f_value.seek(0)\n    ch_info.f_value.write(str(int(bool(value))))\n    ch_info.f_value.flush()"
-            },
-            {
-                "type": "p",
-                "value": "Communication from user space with the kernel module (the underlying program controlling the GPIO pins) is done via files. This is common practice on Linux, so nothing out of the ordinary here."
-            },
-            {
-                "type": "p",
-                "value": "There's another important function, which registers the pin with the kernel module. This is done by writing the pin number to the <code class=\"language-python\">\"/sys/class/gpio/export\"</code> file. This file is used to register a new GPIO pin with the kernel module. The pin number is then used to create new files to set the direction of the pin and to write values to it (<code class=\"language-python\">\"/sys/class/gpio/<gpio_name>/value\"</code>) directory."
-            },
-            {
-                "type": "code",
-                "lang": "language-python",
-                "value": "def _export_gpio(ch_info):\n    _SYSFS_ROOT = \"/sys/class/gpio\"\n\n    if not os.path.exists(_SYSFS_ROOT + \"/\" + ch_info.gpio_name):\n        with open(_SYSFS_ROOT + \"/export\", \"w\") as f_export:\n            f_export.write(str(ch_info.gpio))\n\n    while not os.access(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", os.R_OK | os.W_OK):\n        time.sleep(0.01)\n\n    ch_info.f_direction = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/direction\", 'w')\n    ch_info.f_value = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", 'r+')"
-            },
-            {
-                "type": "p",
-                "value": "There's more to this library, with input pins and PWM control, but the examples above cover the basics for setting up an output pin. There is another file in the library, <code class=\"language-bash\">gpio_pin_data.py</code>, which provides information about the specific device the library is run on. This includes GPIO pin numbers for the different modes, <code class=\"language-bash\">sysfs</code> paths and other useful information. An example for pin 7 is shown below."
-            },
-            {
-                "type": "code",
-                "lang": "language-python",
-                "value": "# Pin definitions for the Xavier NX\nJETSON_NX_PIN_DEFS = [\n    ({224: 148, 169: 118}, {169:  'PS.04'}, \"2200000.gpio\", 7, 4, 'GPIO09', 'AUD_MCLK', None, None),\n    # ...\n]"
-            },
-            {
-                "type": "h2",
-                "value": "Porting the library to Rust"
-            },
-            {
-                "type": "p",
-                "value": "Now that I understood how the library worked, I could start porting it to Rust. I created a new library project using <code class=\"language-bash\">cargo new jetson-gpio-rust --lib</code>. The Python library used a lot of global variables to store information about the state of the library as the user was setting up pins. Rust doesn't like global variables so I had to wrap the library in a struct and use that to store the state. The struct is shown below."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "pub struct GPIO {\n    pub model: String,\n    pub jetson_info: JetsonInfo,\n    channel_data_by_mode: HashMap<Mode, HashMap<u32, ChannelInfo>>,\n\n    // # Dictionary objects used as lookup tables for pin to linux gpio mapping\n    channel_data: HashMap<u32, ChannelInfo>,\n\n    gpio_warnings: bool,\n    gpio_mode: Option<Mode>,\n    \n    channel_configuration: HashMap<u32, Direction>,\n}"
-            },
-            {
-                "type": "p",
-                "value": "Rust is also a strongly typed language, so I had to create types for each of the different collections used in the Python library. Above, you can see <code class=\"language-rust\">JetsonInfo</code> and <code class=\"language-rust\">ChannelInfo</code> as examples of data structure I created to store the information in a similar way as the Python library, but in a more Rusty way."
-            },
-            {
-                "type": "p",
-                "value": "Getting the pin definitions ported was simple, I just needed to create a <code class=\"language-rust\">PinDefinition</code> struct and populate it with the information from the Python library. The same pin definitions example showcasing pin 7 in Rust is shown below."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "let jetson_orin_pin_defs = [\n    PinDefinition {\n        gpio: HashMap::from([(164, 106)]),\n        name: HashMap::from([(164, String::from(\"PQ.06\"))]),\n        chip_sysfs: String::from(\"2200000.gpio\"),\n        board: 7,\n        bcm: 4,\n        cvm: String::from(\"MCLK05\"),\n        tegra_soc: String::from(\"GP66\"),\n        pwm_chip_sysfs: None,\n        pwm_id: None,\n    },\n    // ...\n];"
-            },
-            {
-                "type": "p",
-                "value": "Using descriptive variable names is actually helpful when reading the Rust code compared to the Python code. It's much easier to know which parameter is which when reading the Rust code."
-            },
-            {
-                "type": "p",
-                "value": "The challenging part for this part of the library was porting the <code class=\"language-python\">def get_data()</code> function to <code class=\"language-rust\">pub(crate) fn get_data() -> (String, JetsonInfo, HashMap&lt;Mode, HashMap&lt;u32, ChannelInfo&gt;&gt;)</code>. The return value in Python is a nested dictionary, which meant that I had to create maps in Rust and return a multitude of information. The last <code class=\"language-rust\">HashMap</code> return information about the pins in the different pin numbering modes. I've been using the <code class=\"language-rust\">BOARD</code> mode a lot, since it's easiest to work with. It align with the physical pin numbers on the carrier board, so it's easy to pick the right GPIO pin number."
-            },
-            {
-                "type": "p",
-                "value": "Remember the <code class=\"language-python\">output(channels, values)</code> function from Python? So, I needed to get information about the channels and then set the chosen pins to output. Let's see how that works out in Rust."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "pub fn output(&self, channels: Vec<u32>, values: Vec<Level>) -> Result<(), Error> {\n    let ch_infos = self.channels_to_infos(channels, true, false)?;\n\n    for (ch_info, value) in ch_infos.iter().zip(values.iter()) {\n        output_one(ch_info.clone(), value.clone());\n    }\n\n    Ok(())\n}"
-            },
-            {
-                "type": "p",
-                "value": "I'm using a return type of <code class=\"language-rust\">Result&lt;(), Error&gt;</code>, which is a common way in Rust to encourage error handling. If everything goes well setting up the output pins, this function will return <code class=\"language-rust\">Ok(())</code>. If something goes wrong, it will return an error which can be handled by the caller. It is important that the library handles errors because if setup functions like this one fail, the library will not be able to function properly."
-            },
-            {
-                "type": "p",
-                "value": "Outputting a value on a pin is also similar to the Python code. However, I am writing and then immediately closing the file instead of keeping it open. Therefore I split this function into two."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "fn output_one(ch_info: ChannelInfo, value: Level) {\n    let value_str = match value {\n        Level::HIGH => \"1\",\n        Level::LOW => \"0\",\n    };\n\n    write_value(ch_info, value_str.to_string());\n}"
-            },
-            {
-                "type": "p",
-                "value": "This first part is similar to the Python code. Depending on the value, the library writes either a 0 or a 1 to the file. The function to write is shown below."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "fn write_value(ch_info: ChannelInfo, value: String) {\n    let gpio_dir = format!(\"{}/{}/value\", SYSFS_ROOT, ch_info.global_gpio_name);\n    let mut f_direction = fs::OpenOptions::new().write(true).open(gpio_dir).unwrap();\n    f_direction.rewind().unwrap();\n    f_direction.write_all(value.as_bytes()).unwrap();\n}"
-            },
-            {
-                "type": "p",
-                "value": "Again, there's more to the library than just writing values to a GPIO pin. The library is still a work in progress, so it's not yet fully featured. You can follow along the progress <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/Kajatin/jetson-gpio-rust\">here</a>."
-            },
-            {
-                "type": "code",
-                "lang": "language-rust",
-                "value": "use jetson_gpio::{GPIO, Direction, Level, Mode};\n\nlet mut gpio = GPIO::new();\n// Set the pin numbering mode to BOARD\ngpio.setmode(Mode::BOARD).unwrap();\n// Set the pin to be an output pin\ngpio.setup(vec![7], Direction::OUT, Some(Level::LOW)).unwrap();\n// Turn the LED on\ngpio.output(vec![7], vec![Level::HIGH]).unwrap();\n// Clean up the GPIO pins\ngpio.cleanup(None).unwrap();"
-            },
-            {
-                "type": "p",
-                "value": "As you can see, the final Rust example is very similar to the Python example. The Rust library is still using the same familiar interface. In this working example, I'm using <code class=\"language-rust\">unwrap()</code> on the <code class=\"language-rust\">Result</code>s which are returned by the functions. In a real application, you'd handle the potential errors instead of just unwrapping the value. Calling <code class=\"language-rust\">unwrap()</code> on an error will cause the program to panic and exit."
-            }
-        ],
-        "aqua": [
-            {
-                "type": "p",
-                "value": "Drinking water is important. Yet I've found myself going for hours without drinking any. So I thought it would be fun to make an app that I can use on my phone and be reminded to drink water. This was also around the time that I got my first MacBook Pro. I used to have a ThinkPad before. Naturally, I was excited about the new OS and the possibilities it created, so I decided to make the app for iOS."
-            },
-            {
-                "type": "p",
-                "value": "I've done some Android app development before (just for fun), but I could never try the Apple ecosystem before, since such apps require Xcode that was only available on an Apple device. At any rate, I had my MacBook Pro and I was ready to go."
-            },
-            {
-                "type": "p",
-                "value": "I've been browsing around the Apple Health app for some time before I started on this project. So I've been influenced by the layout there. Normally, each component in the Health app would have a chart or some kind of visual representation of the data at the top. Underneath, there would be some trends and other information. I wanted to do something similar for my app."
-            },
-            {
-                "type": "p",
-                "value": "Alright, that covers the fundamentals about the design. However, I'm getting ahead of myself. Let's start with the basics."
-            },
-            {
-                "type": "h2",
-                "value": "MVVM software design pattern"
-            },
-            {
-                "type": "p",
-                "value": "I've chosen to work with the so-called model view view model (MVVM) software design pattern. This is a common pattern in iOS development. The idea is that you have a model that represents the data in your app. This is a single source of truth and it can sync with databases, APIs, or local persistent storage. The view is the UI that the user sees. It presents the data, but it doesn't store or modify it itself. The view model is the glue between the model and the view. It is responsible for updating the view when the model changes. It also handles user interactions and updates the model accordingly."
-            },
-            {
-                "type": "h3",
-                "value": "Model"
-            },
-            {
-                "type": "p",
-                "value": "I've integrated my app with Apple Health (more on this later), so my model is fairly simple. It stores some settings, such as the target daily water intake, and it also has a list of water intake records. The latter is synced from and to Apple Health. What interesting about the model part of the code, is that I wanted to persist the settings and some states. Therefore, the model needs to be serializable."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "import Foundation\nimport HealthKit\n\nstruct Model: Codable {\n    var target: Double = 3000\n    var healthSamples: [HKQuantitySample] = []\n    // ...\n\n    private enum CodingKeys: String, CodingKey {\n        case target // ...\n    }\n\n    init() { }\n\n    init(json: Data) throws {\n        self = try JSONDecoder().decode(Model.self, from: json)\n    }\n\n    init(url: URL) throws {\n        let data = try Data(contentsOf: url)\n        self = try Model(json: data)\n    }\n\n    func json() throws -> Data {\n        return try JSONEncoder().encode(self)\n    }\n}"
-            },
-            {
-                "type": "p",
-                "value": "Here I'm creating the model struct, which conforms to <code class=\"language-swift\">Codable</code>. This allows me to serialize and deserialize the model. I'm also using the <code class=\"language-swift\">CodingKeys</code> enum to specify which properties should be serialized. I'm not serializing all the properties, since some of them are synced from Apple Health instead. You can see there are some initialization functions. There's a default <code class=\"language-swift\">init()</code> function to initialize the model with default values. This is used when the app is ran for the first time (or saved data has been deleted). The other two functions, <code class=\"language-swift\">init(json: Data)</code> and <code class=\"language-swift\">init(url: URL)</code>, are used to deserialize the model from JSON data or a file. Finally, the <code class=\"language-swift\">func json()</code> function is used to serialize the model to JSON data (which is then cached to a file)."
-            },
-            {
-                "type": "h3",
-                "value": "View Model"
-            },
-            {
-                "type": "p",
-                "value": "The view model is by far the heaviest in terms of logic. It is responsible for saving and loading the model, syncing with Apple Health, scheduling notifications, interpreting the data from the model, presenting data to the view, and handling user interactions which trigger changes to the model."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "import SwiftUI\nimport HealthKit\n\nclass ViewModel: ObservableObject {\n    @Published private(set) var model: Model {\n        didSet {\n            autosave()\n        }\n    }\n\n    init() {\n        if let url = Autosave.url, let autosavedModel = try? Model(url: url) {\n            self.model = autosavedModel\n        } else {\n            self.model = Model()\n        }\n    }\n\n    private struct Autosave {\n        static let filename = \"Autosave.hydration\"\n        static var url: URL? {\n            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first\n            return documentDirectory?.appendingPathComponent(filename)\n        }\n    }\n\n    private func autosave() {\n        if let url = Autosave.url {\n            save(to: url)\n        }\n    }\n\n    private func save(to url: URL) {\n        let thisFunction = \"\\(String(describing: self)).\\(#function)\"\n        do {\n            let data: Data = try model.json()\n            try data.write(to: url)\n        } catch {\n            print(\"\\(thisFunction) = \\(error)\")\n        }\n    }\n}"
-            },
-            {
-                "type": "p",
-                "value": "This is a (greatly) shortened version of the view model code. There are a few interesting things going on here; let me explain. First of all, the view model is a <code class=\"language-swift\">class</code> instead of <code class=\"language-swift\">struct</code>. This is because the view model needs to be a reference type so that multiple parts of the code could interact with the same underlying model."
-            },
-            {
-                "type": "p",
-                "value": "In the <code class=\"language-swift\">init()</code> function, you can see how the model is being loaded from local storage. If there's no saved state, it'll just get initialized with default values instead. To make the model persistence smooth, I'm using a simple autosave mechanism. The model is autosaved every time it changes."
-            },
-            {
-                "type": "p",
-                "value": "The view model conforms to <code class=\"language-swift\">ObservableObject</code>. This allows the view to subscribe to changes in the model (automatically). The view model wraps the model with the <code class=\"language-swift\">@Published</code> property wrapper. This is used to notify the view when the model changes. The model has <code class=\"language-swift\">private(set)</code> access control set, which means that the view will be able to read its values but not directly change them. Instead, the view model should be the only one to change the model."
-            },
-            {
-                "type": "p",
-                "value": "For managing both the Apple Health integration and the notifications, I created separate classes which are then used within the view model. To work with Apple Health, there are two important aspects to it. First, you need to request access to the data you want to read and write. Second, you need to read and write the data using the data types that Apple Health provides. The <code class=\"language-swift\">HealthStoreManager</code> class handles both of these aspects."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {\n    guard let waterType = HKObjectType.quantityType(forIdentifier: .dietaryWater) else {\n        fatalError(\"Diatery water HealthKit object type not available\")\n    }\n    let healthTypes = Set([waterType])\n\n    let healthStore = HKHealthStore()\n    healthStore.requestAuthorization(toShare: healthTypes, read: healthTypes, completion: completion)\n}"
-            },
-            {
-                "type": "p",
-                "value": "The <code class=\"language-swift\">requestAuthorization()</code> function is used to request access to the water data type. I'm requesting both read and write access to the diatery water type, which can store the amount of water consumed by the user. The <code class=\"language-swift\">completion</code> closure is called when the user has either granted or denied access to the data type."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "func readWater(execute: @escaping () -> Void, onError: @escaping (Error?) -> Void) {\n    let waterQuery = HKSampleQuery(sampleType: diateryWaterType,\n                                   predicate: nil,\n                                   limit: HKObjectQueryNoLimit,\n                                   sortDescriptors: nil) {\n        (query, samples, error) in\n\n        guard error == nil, let samples = samples as? [HKQuantitySample] else {\n            onError(error)\n            return\n        }\n\n        DispatchQueue.main.async(execute: execute)\n    }\n\n    healthStore.execute(waterQuery)\n}"
-            },
-            {
-                "type": "p",
-                "value": "To read the data from Apple Health, I needed to set up a <code class=\"language-swift\">HKSampleQuery</code>. This will return either an error or the queried samples. If it is the former, I just return the error to the caller. If it is the latter, I call the <code class=\"language-swift\">execute</code> closure. This closure is used to update the model with the new data. Notice that the <code class=\"language-swift\">execute</code> closure is called on the main thread. This is because the view model is a reference type and the view is observing it. If the view model is updated on a background thread, the view will not be notified of the changes."
-            },
-            {
-                "type": "p",
-                "value": "Similarly to the health store, the <code class=\"language-swift\">NotificationManager</code> class is used to manage the notifications. I also needed to ask the user's permission for scheduling notifications. There are a few ways in which notifications can be scheduled. I'm using the time interval based method, which queues a new notification after a certain amount of time has passed."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "func scheduleTimeToDrinkNotification(timeInterval: TimeInterval, dateWhenShows: Date?, onError: @escaping (Error?) -> Void) {\n    let content = UNMutableNotificationContent()\n    content.title = \"Take a Sip\"\n    if let date = dateWhenShows {\n        content.body = \"You last drank \\(Date.now.relativeDateString(to: date))\"\n    } else {\n        content.body = \"Remember to stay hydrated\"\n    }\n    content.sound = UNNotificationSound.default\n    content.badge = 1\n\n    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)\n    let request = UNNotificationRequest(identifier: identifierTimeToDrink, content: content, trigger: trigger)\n    notificationCenter.add(request, withCompletionHandler: onError)\n}"
-            },
-            {
-                "type": "p",
-                "value": "The <code class=\"language-swift\">UNMutableNotificationContent()</code> function let's me create the body of the notification. I'm just setting the notification text, adding a sound, and setting the badge count on the app. As I mentioned, the trigger for the notification is based on a time interval, which is configurable. Finally, the <code class=\"language-swift\">UNNotificationRequest</code> is scheduled using the <code class=\"language-swift\">notificationCenter</code> object."
-            },
-            {
-                "type": "p",
-                "value": "The last thing I want to mention in connection with the view model are the <i>intents</i>. These are the functions that the view can use as callback to user inputs, which in turn trigger an update to the model. For example, when the user logs a new intake of water, the following intent function is executed."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "func registerDrink(volume: Double, date: Date) {\n    // Add the new water record to Health\n    let waterQuantitySample = healthStoreManager.generateQuantitySample(quantity: volume, date: date)\n    healthStoreManager.writeWaterSample(waterQuantitySample) { (success, error) in\n        if success {\n            DispatchQueue.main.async {\n                // Refresh the water records from Health\n                self.model.healthSamples.append(waterQuantitySample)\n            }\n        } else {\n            print(\"Something went wrong writing health sample: \\(String(describing: error))\")\n        }\n    }\n\n    // Cancel pending time-to-drink notifications\n    notificationManager!.cancelPreviousNotifications()\n\n    if (progress >= target) {\n        return\n    }\n\n    // Schedule notification for later\n    let midnight = Calendar(identifier: .gregorian).startOfDay(for: Date(timeIntervalSinceNow: 86400))\n    let timeUntilMidnight = midnight.timeIntervalSinceNow\n    let averageIntake: Double = 200\n    let timeInterval = (averageIntake * Double(timeUntilMidnight)) / Double(remainder)\n    let fireIn: Double = min(timeInterval, model.notificationInterval)\n    let dateWhenNotificationShows = Date(timeInterval: fireIn, since: date)\n    notificationManager!.scheduleTimeToDrinkNotification(timeInterval: fireIn, dateWhenShows: dateWhenNotificationShows) { error in\n        if error != nil {\n            // Handle any errors.\n        }\n    }\n}"
-            },
-            {
-                "type": "p",
-                "value": "First off, the new intake is logged to Apple Health. If the write operation is successful, the model is updated with the new data. Next, the pending notifications (if any) to remind the user to drink are cancelled. If the user has already reached their daily target, the function returns since there's no need to schedule any further notifications. Otherwise, a new notification is scheduled. The time interval for the notification is calculated based on the user's average intake and the time until midnight. The notification is scheduled to fire in the minimum of the calculated time interval and the user's configured notification interval. This is to ensure that the user is not bombarded with notifications if they have not reached their target."
-            },
-            {
-                "type": "h3",
-                "value": "View"
-            },
-            {
-                "type": "p",
-                "value": "To build the UI of the app, I've used SwiftUI. For an otherwise programmer like myself, I found SwiftUI to be really easy to get going with since it builds the UI right in the code. There's the <code class=\"language-swift\">View</code> type and loads of built-in views which can be nested and stacked as needed. The <code class=\"language-swift\">View</code> type is a protocol, so it can be extended to add custom views. For example, I've created many different views most of which are then nested inside other views. This allows me to reuse components and keep the code clean and readable. It also makes it easy to change the UI of the app since I can just apply any change to a single part of the code (i.e. where the view is implemented) and it'll be reflected everywhere that it's used."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "import SwiftUI\n\nstruct ContentView: View {\n    @EnvironmentObject var viewModel: ViewModel\n\n    var body: some View {\n        TabView {\n            TodayView()\n                .badge(viewModel.model.timeToDrink ? 1 : 0)\n                .tabItem {\n                    Label(\"Today\", systemImage: \"house\")\n                }\n            CalendarHistoryView()\n                .tabItem {\n                    Label(\"History\", systemImage: \"calendar\")\n                }\n        }\n    }\n}"
-            },
-            {
-                "type": "p",
-                "value": "The main entrypoint of the UI is the <code class=\"language-swift\">ContentView</code> struct that conforms to <code class=\"language-swift\">View</code>. An interesting thing is the <code class=\"language-swift\">@EnvironmentObject</code> property wrapper is used to inject the view model into the view. This allows all of the views to access the same model and the intents. Since the model is marked <code class=\"language-swift\">@Published</code> in the view model, this is all that is needed for the views to know when to update their UI."
-            },
-            {
-                "type": "p",
-                "value": "The main interface is a <code class=\"language-swift\">TabView</code> in which I have two views. The <code class=\"language-swift\">TodayView</code> tab gives complete overview of the water intake progress and the associated trends. The <code class=\"language-swift\">CalendarHistoryView</code> tab shows the user's water intake history in a calendar view. The <code class=\"language-swift\">TodayView</code> tab also has a badge that shows whether there are pending notifications. This is to remind the user to drink water if they haven't reached their target. All of this is showcased in the following video."
-            },
-            {
-                "type": "video",
-                "height": "600",
-                "value": {
-                    "light": "/projects/aqua_demo.mov",
-                    "dark": "/projects/aqua_demo_dark.mov"
-                }
-            },
-            {
-                "type": "h2",
-                "value": "Widget on the Home Screen"
-            },
-            {
-                "type": "p",
-                "value": "To provide a quick and easy insight into the daily progress, I also added a widget extension to the app. This widget can be added to the home screen. It updates the UI every time the user registers a new intake. The following video shows the widget in action."
-            },
-            {
-                "type": "video",
-                "height": "600",
-                "value": {
-                    "light": "/projects/aqua_widget.mov",
-                    "dark": "/projects/aqua_widget_dark.mov"
-                }
-            },
-            {
-                "type": "p",
-                "value": "For the configuration of the widget I'm using <code class=\"language-swift\">StaticConfiguration</code> which is one without user configurable options. There's no need to have any configuration options here, since the target is already configured in the app, and the progress is also evident. The way widgets work is that they require a piece code that provides a timeline. This timeline dictates how and when the widget needs to be updated."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {\n    var entries: [SimpleEntry] = []\n\n    // Generate a timeline consisting of a single entry\n    let currentDate = Date()\n    let entry = SimpleEntry(date: currentDate)\n    entries.append(entry)\n\n    let updateAfter = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!\n    let timeline = Timeline(entries: entries, policy: .after(updateAfter))\n    completion(timeline)\n}"
-            },
-            {
-                "type": "p",
-                "value": "The timeline for Aqua is fairly simple. There's no automatic update of the water intake. This means the widget won't need to update it's progress on its own. So I'm just creating a timeline with a single entry. The provider will ask for an update after 30 minutes, which might add an icon on the widget if it's time to drink. Otherwise the widget is automatically updated every time the model changes."
-            },
-            {
-                "type": "p",
-                "value": "The widget gets its information from the main app via <code class=\"language-swift\">UserDefaults</code> storage. This is a simple key-value store that is shared between the app and the widget. The widget can read the data from the storage and update the UI accordingly."
-            },
-            {
-                "type": "code",
-                "lang": "language-swift",
-                "value": "private func setSharedData() {\n    let sharedDefault = UserDefaults(suiteName: \"group.widget.com.gmail.roland.kajatin\")!\n    sharedDefault.set(progress, forKey: \"waterProgress\")\n    sharedDefault.set(progressNormalized, forKey: \"waterProgressNormalize\")\n    sharedDefault.set(target, forKey: \"waterTarget\")\n    sharedDefault.set(mostRecentRecord.endDate, forKey: \"waterLastDate\")\n    sharedDefault.set(model.timeToDrink, forKey: \"waterTimeToDrink\")\n\n    // Reload the widget's timeline\n    WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")\n}"
-            },
-            {
-                "type": "p",
-                "value": "I'm just setting the values that I need in the widget. The <code class=\"language-swift\">WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")</code> call is what triggers the widget to update. The widget will then read the values from the storage and update the UI."
-            },
-            {
-                "type": "image",
-                "value": "/projects/aqua_lock_screen.png"
-            },
-            {
-                "type": "p",
-                "value": "Yes; the widget is also available on the lock screen. 😎"
-            },
-            {
-                "type": "h2",
-                "value": "Apple Watch integration"
-            },
-            {
-                "type": "p",
-                "value": "The fun doesn't end here. I also added an Apple Watch app to the project. This app is a companion to the main app. It allows the user to register water intake directly from the watch. The watch app is also a good way to show the user's progress on the watch face. The following video shows the watch app in action."
-            },
-            {
-                "type": "video",
-                "height": "250",
-                "value": {
-                    "light": "/projects/aqua_watch.mp4",
-                    "dark": "/projects/aqua_watch.mp4"
-                }
-            },
-            {
-                "type": "p",
-                "value": "The watch app uses the same model and view model as the main app. Therefore, there's no need to have any additional data sharing options. The design of the watch app is different though. Since the watch has a much smaller screen, I opted for a more compact design. It consists of 3 tabs. One for some basic settings, like the target intake. One for the main view, which shows the progress and previous intakes. And the last one is for the previous week's intake records with a chart."
-            }
-        ],
-        "art": [
-            {
-                "type": "p",
-                "value": "I've found out about Processing somewhere around 2015. Most of the time I was working on code that was more system level or low level. I was working on a lot of C++ and C code. Processing was a breath of fresh air. It was a way to express myself creatively. It allowed me to take some math and physics concepts that we were learning in school and turn them into something visual. It was a way to explore the world of art and coding at the same time. I was hooked."
-            },
-            {
-                "type": "p",
-                "value": "Shout-out to <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/user/shiffman\">Daniel Shiffman</a> and his community The Coding Train. I've been following his videos and learning about using mathematical and physical concepts to create something visually appealing or interesting."
-            },
-            {
-                "type": "sketch",
-                "value": "(p5) => {let bubbles = [];let h = 0;class Bubble {constructor(x, y) {this.pos = p5.createVector(x, y);this.vel = p5.createVector(0, 0);this.acc = p5.createVector(0, 0);this.r = p5.random(5, 30);this.color = p5.color(p5.random(h, h + 30),p5.random(100, 255),p5.random(100, 255),p5.random(100, 255));}float() {let xoff = p5.map(this.pos.x, 0, p5.width, 0, 10);let yoff = p5.map(this.pos.y, 0, p5.height, 0, 10);let angle = p5.noise(xoff, yoff) * p5.TWO_PI * 4;let force = p5.Vector.fromAngle(angle);force.mult(0.05);this.acc.add(force);this.vel.add(this.acc);this.pos.add(this.vel);this.acc.mult(0);if (this.vel.mag() > 5) {this.vel.setMag(0);}if (this.pos.x > p5.width + this.r) {this.pos.x = -this.r;}if (this.pos.x < -this.r) {this.pos.x = p5.width + this.r;}if (this.pos.y > p5.height + this.r) {this.pos.y = -this.r;}if (this.pos.y < -this.r) {this.pos.y = p5.height + this.r;}}rotateHue() {this.color = p5.color((p5.hue(this.color) + 0.1) % 255,p5.saturation(this.color),p5.brightness(this.color),p5.alpha(this.color));}show() {p5.noStroke();p5.fill(this.color);p5.ellipse(this.pos.x, this.pos.y, this.r * 2);}}p5.setup = () => {p5.colorMode(p5.HSB, 255);p5.createCanvas(500, 500);p5.background(0, 0, 0, 0);h = p5.random(225);for (let i = 0; i < 50; i++) {let x = p5.random(p5.width);let y = p5.random(p5.height);let b = new Bubble(x, y);bubbles.push(b);}};p5.draw = () => {for (let i = 0; i < bubbles.length; i++) {bubbles[i].float();bubbles[i].rotateHue();bubbles[i].show();}};};"
-            },
-            {
-                "type": "p",
-                "value": "another"
-            },
-            {
-                "type": "sketch",
-                "value": "(p5) => {class Obstacle {constructor(path) {this.path = path;this.weight = 5;}distSq(v, w) {return (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);}distToSegment(p, v, w) {let l2 = this.distSq(v, w);if (l2 == 0) return this.distSq(p, v);let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;t = p5.max(0, p5.min(1, t));return this.distSq(p,p5.createVector(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));}checkCollision(rocket) {for (let i = 0; i < this.path.length - 1; i++) {let p = this.path[i];let p2 = this.path[i + 1];let d = this.distToSegment(rocket.pos, p, p2);if (d < rocket.r) {return true;}}return false;}show() {p5.push();p5.noFill();p5.stroke(55);p5.strokeWeight(this.weight);for (let i = 0; i < this.path.length - 1; i++) {let p = this.path[i];let p2 = this.path[i + 1];p5.line(p.x, p.y, p2.x, p2.y);}p5.pop();}}class DNA {constructor(lifespan, genes) {this.genes = [];this.lifespan = lifespan;this.max_acc = 0.2;this.mutation_rate = 0.01;if (genes) this.genes = genes;else this.generate();}generate() {for (let i = 0; i < this.lifespan; i++) {this.genes[i] = p5.Vector.random2D();this.genes[i].setMag(p5.random(0, this.max_acc));}}crossover(partner, fitnessA, fitnessB) {let child = [];let midpoint = p5.floor(p5.random(this.genes.length));for (let i = 0; i < this.genes.length; i++) {if (i > midpoint) child.push(this.genes[i]);else child.push(partner.genes[i]);}return new DNA(this.lifespan, child);}mutation() {for (let i = 0; i < this.genes.length; i++) {if (p5.random(1) < this.mutation_rate) {this.genes[i] = p5.Vector.random2D();this.genes[i].setMag(this.max_acc);}}}}class Rocket {constructor(lifespan, dna, h, h2) {this.pos = p5.createVector(p5.width / 2, p5.height - 10);this.vel = p5.createVector();this.acc = p5.createVector();this.max_vel = 4;this.r = 10;this.tailWidth = 15;this.tailLength = 30;this.color_head = p5.color(p5.random(h, h + 30),p5.random(100, 255),p5.random(100, 255));this.color_tail = p5.color(p5.random(h2, h2 + 30),p5.random(100, 255),p5.random(100, 255));this.path = [];this.crashed = false;this.completed = false;this.fitness = 0;if (dna) this.dna = dna;else this.dna = new DNA(lifespan);}applyForce(force) {this.acc.add(force);}calcFitness(target) {let max_dist = 0;max_dist = p5.max(max_dist, p5.dist(0, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(0, p5.height, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, p5.height, target.x, target.y));let d = p5.dist(this.pos.x, this.pos.y, target.x, target.y);this.fitness = p5.map(d, 0, max_dist, 1, 0);if (this.completed) this.fitness *= 10;if (this.crashed) this.fitness /= 10;}update(count, target, obstacles) {if (this.crashed || this.completed) return;let d = p5.dist(this.pos.x, this.pos.y, target.x, target.y);if (d < 10) {this.pos = target.copy();this.completed = true;}if (this.pos.x > p5.width || this.pos.x < 0) {this.crashed = true;}if (this.pos.y > p5.height || this.pos.y < 0) {this.crashed = true;}for (let i = 0; i < obstacles.length; i++) {if (obstacles[i].checkCollision(this)) {this.crashed = true;break;}}this.applyForce(this.dna.genes[count]);this.vel.add(this.acc);this.pos.add(this.vel);this.acc.mult(0);this.vel.limit(this.max_vel);this.path.push(this.pos.copy());if (this.path.length > this.tailLength) this.path.splice(0, 1);}show(target) {let max_dist = 0;max_dist = p5.max(max_dist, p5.dist(0, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(0, p5.height, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, p5.height, target.x, target.y));for (let i = 0; i < this.path.length - 1; i++) {p5.push();let p = this.path[i];let p2 = this.path[i + 1];let d = p5.dist(p2.x, p2.y, target.x, target.y);let alpha = p5.map(d, 0, max_dist, 100, 0);let c = p5.color(p5.hue(this.color_tail),p5.saturation(this.color_tail),p5.brightness(this.color_tail),alpha);p5.stroke(c);p5.strokeWeight(this.tailWidth);p5.line(p.x, p.y, p2.x, p2.y);p5.pop();}p5.push();p5.noStroke();p5.fill(this.color_head);p5.translate(this.pos.x, this.pos.y);p5.rotate(this.vel.heading());p5.rectMode(p5.CENTER);p5.ellipse(0, 0, this.r * 2);p5.pop();}}class Population {constructor(size, lifespan) {this.rockets = [];this.popsize = size;this.matingpool = [];this.lifespan = lifespan;this.obstacles = [];this.h = p5.random(225);this.h2 = p5.random(225);for (let i = 0; i < this.popsize; i++) {this.rockets[i] = new Rocket(lifespan, null, this.h, this.h2);}}run(count, target) {for (let i = 0; i < this.popsize; i++) {this.rockets[i].update(count, target, this.obstacles);this.rockets[i].show(target);}for (let i = 0; i < this.obstacles.length; i++) {this.obstacles[i].show();}}evaluate(target) {let maxfit = 0;for (let i = 0; i < this.popsize; i++) {this.rockets[i].calcFitness(target);if (this.rockets[i].fitness > maxfit) {maxfit = this.rockets[i].fitness;}}this.matingpool = [];for (let i = 0; i < this.popsize; i++) {let n = (this.rockets[i].fitness / maxfit) * 100;for (let j = 0; j < n; j++) {this.matingpool.push(this.rockets[i]);}}}selection() {let newRockets = [];for (let i = 0; i < this.rockets.length; i++) {let parentA = p5.random(this.matingpool);if (parentA.crashed) {newRockets[i] = new Rocket(this.lifespan, null, this.h, this.h2);continue;}let parentB = p5.random(this.matingpool);if (parentB.crashed) {newRockets[i] = new Rocket(this.lifespan, null, this.h, this.h2);continue;}let child = parentA.dna.crossover(parentB.dna,parentA.fitness,parentB.fitness);child.mutation();newRockets[i] = new Rocket(this.lifespan, child, this.h, this.h2);}this.rockets = newRockets;}createObstacle(new_obstacle) {let obstacle = new Obstacle(new_obstacle);this.obstacles.push(obstacle);}}let target;let targetRadius = 16;let pulseDir = 1;let population;let count;let new_obstacle = [];p5.setup = () => {p5.colorMode(p5.HSB, 255);p5.createCanvas(500, 300);p5.background(0,0,0,0);target = p5.createVector(p5.random(50, p5.width - 50), p5.random(20, 100));population = new Population(50, 200);count = 0;};p5.draw = () => {p5.background(0,0,0,0);p5.clear();population.run(count, target);count++;if (count == population.lifespan) {population.evaluate(target);population.selection();count = 0;}if (true == p5.mouseIsPressed) {new_obstacle.push(p5.createVector(p5.mouseX, p5.mouseY));} else if (false == p5.mouseIsPressed && new_obstacle.length > 0) {new_obstacle.push(p5.createVector(p5.mouseX, p5.mouseY));population.createObstacle(new_obstacle);new_obstacle = [];}if (new_obstacle.length > 1) {for (let i = 0; i < new_obstacle.length - 1; i++) {let p = new_obstacle[i];let p2 = new_obstacle[i + 1];p5.stroke(55);p5.line(p.x, p.y, p2.x, p2.y);}}p5.stroke(55);p5.strokeWeight(2);p5.ellipse(target.x, target.y, targetRadius);targetRadius += 0.1 * pulseDir;if (targetRadius > 22) {pulseDir = -1;}if (targetRadius < 16) {pulseDir = 1;}};};"
-            }
-        ]
-    }
+	"details": {
+		"gpio": [
+			{
+				"type": "p",
+				"value": "The Jetson modules by NVIDIA are a popular choice for embedded systems. They are powerful enough to run modern machine learning algorithms and are also cheap enough to be used in IoT devices. I work a lot with the Jetson Xavier NX module and develop computer vision applications for it."
+			},
+			{
+				"type": "p",
+				"value": "One of the requirements of running a computer vision application all-day round is to ensure there's enough light even during the dark hours. My team and I used a pair of infra-red LEDs to illuminate the scene. This is the go-to choice for vision devices that are required to work in the dark, since the wavelength of the light sources are outside the visual range of the human eye. This makes this light be invisible for humans, which is a must have in order not to disturb the users of the device while they were asleep."
+			},
+			{
+				"type": "p",
+				"value": "The LEDs are mounted on a simple controller board, which is then connected to the Jetson module via the carrier board's GPIO pins. These pins are physically connected to the module and can be used to send signals as either inputs or outputs from the module. In this case, we're using the pins as outputs to control the LEDs."
+			},
+			{
+				"type": "p",
+				"value": "The pins can be controlled by software. NVIDIA has their own Python based library <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/NVIDIA/jetson-gpio\">jetson-gpio</a> which is using a similar interface to the popular <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://pypi.org/project/RPi.GPIO/\">RPi.GPIO</a> library for the Raspberry Pi."
+			},
+			{
+				"type": "code",
+				"lang": "language-python",
+				"value": "import RPi.GPIO as GPIO\n\n# This is the pin number of the GPIO pin that the LED is connected to (in BOARD mode)\npin = 7\n# Set the pin numbering mode to BOARD\nGPIO.setmode(GPIO.BOARD)\n# Set the pin to be an output pin\nGPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)\n# Turn the LED on\nGPIO.output(pin, GPIO.HIGH)\n# Clean up the GPIO pins\nGPIO.cleanup()"
+			},
+			{
+				"type": "p",
+				"value": "The pins to be controlled can be defined in four different modes. The snippet above uses the <code class=\"language-python\">BOARD</code> mode. This mode uses the physical pin numbers of the Jetson module. Then, the pin is configured as output, meaning that it can be used to send a signal out. The initial output is also set to low, which means that the LEDs will be off by default. Finally, the LED is turned on by setting the output to high. The <code class=\"language-python\">cleanup()</code> function is used to reset the system to their default state."
+			},
+			{
+				"type": "p",
+				"value": "This is simple and easy. Yet, there's a problem. The library is only available for Python, whereas I'd prefer to use a faster and pre-compiled language such as Rust. The latter simplifies deployment and execution, since it's a self contained program with a single executable and no environment needed. It's also more fun.🤓"
+			},
+			{
+				"type": "h2",
+				"value": "Let's dig deeper"
+			},
+			{
+				"type": "p",
+				"value": "Before I could port the library to Rust, I needed to understand how the Python library was working. I also wanted to retain the same interface in the Rust module. This would make it easier for people to use the library, since all the function and interfaces will be familiar and recognizable."
+			},
+			{
+				"type": "p",
+				"value": "The first thing I wanted to find out was the way the library actually interfaced with the pins."
+			},
+			{
+				"type": "code",
+				"lang": "language-python",
+				"value": "def output(channels, values):\n    ch_infos = _channels_to_infos(channels, need_gpio=True)\n\n    for ch_info, value in zip(ch_infos, values):\n        _output_one(ch_info, value)"
+			},
+			{
+				"type": "p",
+				"value": "Alright, first I need to get information about the channels (<code class=\"language-python\">_channels_to_infos()</code>). Then, I need to iterate over the channels and set the output value for each one of them (<code class=\"language-python\">_output_one()</code>)."
+			},
+			{
+				"type": "code",
+				"lang": "language-python",
+				"value": "def _output_one(ch_info, value):\n    ch_info.f_value.seek(0)\n    ch_info.f_value.write(str(int(bool(value))))\n    ch_info.f_value.flush()"
+			},
+			{
+				"type": "p",
+				"value": "Communication from user space with the kernel module (the underlying program controlling the GPIO pins) is done via files. This is common practice on Linux, so nothing out of the ordinary here."
+			},
+			{
+				"type": "p",
+				"value": "There's another important function, which registers the pin with the kernel module. This is done by writing the pin number to the <code class=\"language-python\">\"/sys/class/gpio/export\"</code> file. This file is used to register a new GPIO pin with the kernel module. The pin number is then used to create new files to set the direction of the pin and to write values to it (<code class=\"language-python\">\"/sys/class/gpio/<gpio_name>/value\"</code>) directory."
+			},
+			{
+				"type": "code",
+				"lang": "language-python",
+				"value": "def _export_gpio(ch_info):\n    _SYSFS_ROOT = \"/sys/class/gpio\"\n\n    if not os.path.exists(_SYSFS_ROOT + \"/\" + ch_info.gpio_name):\n        with open(_SYSFS_ROOT + \"/export\", \"w\") as f_export:\n            f_export.write(str(ch_info.gpio))\n\n    while not os.access(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", os.R_OK | os.W_OK):\n        time.sleep(0.01)\n\n    ch_info.f_direction = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/direction\", 'w')\n    ch_info.f_value = open(_SYSFS_ROOT + \"/\" + ch_info.gpio_name + \"/value\", 'r+')"
+			},
+			{
+				"type": "p",
+				"value": "There's more to this library, with input pins and PWM control, but the examples above cover the basics for setting up an output pin. There is another file in the library, <code class=\"language-bash\">gpio_pin_data.py</code>, which provides information about the specific device the library is run on. This includes GPIO pin numbers for the different modes, <code class=\"language-bash\">sysfs</code> paths and other useful information. An example for pin 7 is shown below."
+			},
+			{
+				"type": "code",
+				"lang": "language-python",
+				"value": "# Pin definitions for the Xavier NX\nJETSON_NX_PIN_DEFS = [\n    ({224: 148, 169: 118}, {169:  'PS.04'}, \"2200000.gpio\", 7, 4, 'GPIO09', 'AUD_MCLK', None, None),\n    # ...\n]"
+			},
+			{
+				"type": "h2",
+				"value": "Porting the library to Rust"
+			},
+			{
+				"type": "p",
+				"value": "Now that I understood how the library worked, I could start porting it to Rust. I created a new library project using <code class=\"language-bash\">cargo new jetson-gpio-rust --lib</code>. The Python library used a lot of global variables to store information about the state of the library as the user was setting up pins. Rust doesn't like global variables so I had to wrap the library in a struct and use that to store the state. The struct is shown below."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "pub struct GPIO {\n    pub model: String,\n    pub jetson_info: JetsonInfo,\n    channel_data_by_mode: HashMap<Mode, HashMap<u32, ChannelInfo>>,\n\n    // # Dictionary objects used as lookup tables for pin to linux gpio mapping\n    channel_data: HashMap<u32, ChannelInfo>,\n\n    gpio_warnings: bool,\n    gpio_mode: Option<Mode>,\n    \n    channel_configuration: HashMap<u32, Direction>,\n}"
+			},
+			{
+				"type": "p",
+				"value": "Rust is also a strongly typed language, so I had to create types for each of the different collections used in the Python library. Above, you can see <code class=\"language-rust\">JetsonInfo</code> and <code class=\"language-rust\">ChannelInfo</code> as examples of data structure I created to store the information in a similar way as the Python library, but in a more Rusty way."
+			},
+			{
+				"type": "p",
+				"value": "Getting the pin definitions ported was simple, I just needed to create a <code class=\"language-rust\">PinDefinition</code> struct and populate it with the information from the Python library. The same pin definitions example showcasing pin 7 in Rust is shown below."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "let jetson_orin_pin_defs = [\n    PinDefinition {\n        gpio: HashMap::from([(164, 106)]),\n        name: HashMap::from([(164, String::from(\"PQ.06\"))]),\n        chip_sysfs: String::from(\"2200000.gpio\"),\n        board: 7,\n        bcm: 4,\n        cvm: String::from(\"MCLK05\"),\n        tegra_soc: String::from(\"GP66\"),\n        pwm_chip_sysfs: None,\n        pwm_id: None,\n    },\n    // ...\n];"
+			},
+			{
+				"type": "p",
+				"value": "Using descriptive variable names is actually helpful when reading the Rust code compared to the Python code. It's much easier to know which parameter is which when reading the Rust code."
+			},
+			{
+				"type": "p",
+				"value": "The challenging part for this part of the library was porting the <code class=\"language-python\">def get_data()</code> function to <code class=\"language-rust\">pub(crate) fn get_data() -> (String, JetsonInfo, HashMap&lt;Mode, HashMap&lt;u32, ChannelInfo&gt;&gt;)</code>. The return value in Python is a nested dictionary, which meant that I had to create maps in Rust and return a multitude of information. The last <code class=\"language-rust\">HashMap</code> return information about the pins in the different pin numbering modes. I've been using the <code class=\"language-rust\">BOARD</code> mode a lot, since it's easiest to work with. It align with the physical pin numbers on the carrier board, so it's easy to pick the right GPIO pin number."
+			},
+			{
+				"type": "p",
+				"value": "Remember the <code class=\"language-python\">output(channels, values)</code> function from Python? So, I needed to get information about the channels and then set the chosen pins to output. Let's see how that works out in Rust."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "pub fn output(&self, channels: Vec<u32>, values: Vec<Level>) -> Result<(), Error> {\n    let ch_infos = self.channels_to_infos(channels, true, false)?;\n\n    for (ch_info, value) in ch_infos.iter().zip(values.iter()) {\n        output_one(ch_info.clone(), value.clone());\n    }\n\n    Ok(())\n}"
+			},
+			{
+				"type": "p",
+				"value": "I'm using a return type of <code class=\"language-rust\">Result&lt;(), Error&gt;</code>, which is a common way in Rust to encourage error handling. If everything goes well setting up the output pins, this function will return <code class=\"language-rust\">Ok(())</code>. If something goes wrong, it will return an error which can be handled by the caller. It is important that the library handles errors because if setup functions like this one fail, the library will not be able to function properly."
+			},
+			{
+				"type": "p",
+				"value": "Outputting a value on a pin is also similar to the Python code. However, I am writing and then immediately closing the file instead of keeping it open. Therefore I split this function into two."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "fn output_one(ch_info: ChannelInfo, value: Level) {\n    let value_str = match value {\n        Level::HIGH => \"1\",\n        Level::LOW => \"0\",\n    };\n\n    write_value(ch_info, value_str.to_string());\n}"
+			},
+			{
+				"type": "p",
+				"value": "This first part is similar to the Python code. Depending on the value, the library writes either a 0 or a 1 to the file. The function to write is shown below."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "fn write_value(ch_info: ChannelInfo, value: String) {\n    let gpio_dir = format!(\"{}/{}/value\", SYSFS_ROOT, ch_info.global_gpio_name);\n    let mut f_direction = fs::OpenOptions::new().write(true).open(gpio_dir).unwrap();\n    f_direction.rewind().unwrap();\n    f_direction.write_all(value.as_bytes()).unwrap();\n}"
+			},
+			{
+				"type": "p",
+				"value": "Again, there's more to the library than just writing values to a GPIO pin. The library is still a work in progress, so it's not yet fully featured. You can follow along the progress <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/Kajatin/jetson-gpio-rust\">here</a>."
+			},
+			{
+				"type": "code",
+				"lang": "language-rust",
+				"value": "use jetson_gpio::{GPIO, Direction, Level, Mode};\n\nlet mut gpio = GPIO::new();\n// Set the pin numbering mode to BOARD\ngpio.setmode(Mode::BOARD).unwrap();\n// Set the pin to be an output pin\ngpio.setup(vec![7], Direction::OUT, Some(Level::LOW)).unwrap();\n// Turn the LED on\ngpio.output(vec![7], vec![Level::HIGH]).unwrap();\n// Clean up the GPIO pins\ngpio.cleanup(None).unwrap();"
+			},
+			{
+				"type": "p",
+				"value": "As you can see, the final Rust example is very similar to the Python example. The Rust library is still using the same familiar interface. In this working example, I'm using <code class=\"language-rust\">unwrap()</code> on the <code class=\"language-rust\">Result</code>s which are returned by the functions. In a real application, you'd handle the potential errors instead of just unwrapping the value. Calling <code class=\"language-rust\">unwrap()</code> on an error will cause the program to panic and exit."
+			}
+		],
+		"aqua": [
+			{
+				"type": "p",
+				"value": "Drinking water is important. Yet I've found myself going for hours without drinking any. So I thought it would be fun to make an app that I can use on my phone and be reminded to drink water. This was also around the time that I got my first MacBook Pro. I used to have a ThinkPad before. Naturally, I was excited about the new OS and the possibilities it created, so I decided to make the app for iOS."
+			},
+			{
+				"type": "p",
+				"value": "I've done some Android app development before (just for fun), but I could never try the Apple ecosystem before, since such apps require Xcode that was only available on an Apple device. At any rate, I had my MacBook Pro and I was ready to go."
+			},
+			{
+				"type": "p",
+				"value": "I've been browsing around the Apple Health app for some time before I started on this project. So I've been influenced by the layout there. Normally, each component in the Health app would have a chart or some kind of visual representation of the data at the top. Underneath, there would be some trends and other information. I wanted to do something similar for my app."
+			},
+			{
+				"type": "p",
+				"value": "Alright, that covers the fundamentals about the design. However, I'm getting ahead of myself. Let's start with the basics."
+			},
+			{
+				"type": "h2",
+				"value": "MVVM software design pattern"
+			},
+			{
+				"type": "p",
+				"value": "I've chosen to work with the so-called model view view model (MVVM) software design pattern. This is a common pattern in iOS development. The idea is that you have a model that represents the data in your app. This is a single source of truth and it can sync with databases, APIs, or local persistent storage. The view is the UI that the user sees. It presents the data, but it doesn't store or modify it itself. The view model is the glue between the model and the view. It is responsible for updating the view when the model changes. It also handles user interactions and updates the model accordingly."
+			},
+			{
+				"type": "h3",
+				"value": "Model"
+			},
+			{
+				"type": "p",
+				"value": "I've integrated my app with Apple Health (more on this later), so my model is fairly simple. It stores some settings, such as the target daily water intake, and it also has a list of water intake records. The latter is synced from and to Apple Health. What interesting about the model part of the code, is that I wanted to persist the settings and some states. Therefore, the model needs to be serializable."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "import Foundation\nimport HealthKit\n\nstruct Model: Codable {\n    var target: Double = 3000\n    var healthSamples: [HKQuantitySample] = []\n    // ...\n\n    private enum CodingKeys: String, CodingKey {\n        case target // ...\n    }\n\n    init() { }\n\n    init(json: Data) throws {\n        self = try JSONDecoder().decode(Model.self, from: json)\n    }\n\n    init(url: URL) throws {\n        let data = try Data(contentsOf: url)\n        self = try Model(json: data)\n    }\n\n    func json() throws -> Data {\n        return try JSONEncoder().encode(self)\n    }\n}"
+			},
+			{
+				"type": "p",
+				"value": "Here I'm creating the model struct, which conforms to <code class=\"language-swift\">Codable</code>. This allows me to serialize and deserialize the model. I'm also using the <code class=\"language-swift\">CodingKeys</code> enum to specify which properties should be serialized. I'm not serializing all the properties, since some of them are synced from Apple Health instead. You can see there are some initialization functions. There's a default <code class=\"language-swift\">init()</code> function to initialize the model with default values. This is used when the app is ran for the first time (or saved data has been deleted). The other two functions, <code class=\"language-swift\">init(json: Data)</code> and <code class=\"language-swift\">init(url: URL)</code>, are used to deserialize the model from JSON data or a file. Finally, the <code class=\"language-swift\">func json()</code> function is used to serialize the model to JSON data (which is then cached to a file)."
+			},
+			{
+				"type": "h3",
+				"value": "View Model"
+			},
+			{
+				"type": "p",
+				"value": "The view model is by far the heaviest in terms of logic. It is responsible for saving and loading the model, syncing with Apple Health, scheduling notifications, interpreting the data from the model, presenting data to the view, and handling user interactions which trigger changes to the model."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "import SwiftUI\nimport HealthKit\n\nclass ViewModel: ObservableObject {\n    @Published private(set) var model: Model {\n        didSet {\n            autosave()\n        }\n    }\n\n    init() {\n        if let url = Autosave.url, let autosavedModel = try? Model(url: url) {\n            self.model = autosavedModel\n        } else {\n            self.model = Model()\n        }\n    }\n\n    private struct Autosave {\n        static let filename = \"Autosave.hydration\"\n        static var url: URL? {\n            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first\n            return documentDirectory?.appendingPathComponent(filename)\n        }\n    }\n\n    private func autosave() {\n        if let url = Autosave.url {\n            save(to: url)\n        }\n    }\n\n    private func save(to url: URL) {\n        let thisFunction = \"\\(String(describing: self)).\\(#function)\"\n        do {\n            let data: Data = try model.json()\n            try data.write(to: url)\n        } catch {\n            print(\"\\(thisFunction) = \\(error)\")\n        }\n    }\n}"
+			},
+			{
+				"type": "p",
+				"value": "This is a (greatly) shortened version of the view model code. There are a few interesting things going on here; let me explain. First of all, the view model is a <code class=\"language-swift\">class</code> instead of <code class=\"language-swift\">struct</code>. This is because the view model needs to be a reference type so that multiple parts of the code could interact with the same underlying model."
+			},
+			{
+				"type": "p",
+				"value": "In the <code class=\"language-swift\">init()</code> function, you can see how the model is being loaded from local storage. If there's no saved state, it'll just get initialized with default values instead. To make the model persistence smooth, I'm using a simple autosave mechanism. The model is autosaved every time it changes."
+			},
+			{
+				"type": "p",
+				"value": "The view model conforms to <code class=\"language-swift\">ObservableObject</code>. This allows the view to subscribe to changes in the model (automatically). The view model wraps the model with the <code class=\"language-swift\">@Published</code> property wrapper. This is used to notify the view when the model changes. The model has <code class=\"language-swift\">private(set)</code> access control set, which means that the view will be able to read its values but not directly change them. Instead, the view model should be the only one to change the model."
+			},
+			{
+				"type": "p",
+				"value": "For managing both the Apple Health integration and the notifications, I created separate classes which are then used within the view model. To work with Apple Health, there are two important aspects to it. First, you need to request access to the data you want to read and write. Second, you need to read and write the data using the data types that Apple Health provides. The <code class=\"language-swift\">HealthStoreManager</code> class handles both of these aspects."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {\n    guard let waterType = HKObjectType.quantityType(forIdentifier: .dietaryWater) else {\n        fatalError(\"Diatery water HealthKit object type not available\")\n    }\n    let healthTypes = Set([waterType])\n\n    let healthStore = HKHealthStore()\n    healthStore.requestAuthorization(toShare: healthTypes, read: healthTypes, completion: completion)\n}"
+			},
+			{
+				"type": "p",
+				"value": "The <code class=\"language-swift\">requestAuthorization()</code> function is used to request access to the water data type. I'm requesting both read and write access to the diatery water type, which can store the amount of water consumed by the user. The <code class=\"language-swift\">completion</code> closure is called when the user has either granted or denied access to the data type."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "func readWater(execute: @escaping () -> Void, onError: @escaping (Error?) -> Void) {\n    let waterQuery = HKSampleQuery(sampleType: diateryWaterType,\n                                   predicate: nil,\n                                   limit: HKObjectQueryNoLimit,\n                                   sortDescriptors: nil) {\n        (query, samples, error) in\n\n        guard error == nil, let samples = samples as? [HKQuantitySample] else {\n            onError(error)\n            return\n        }\n\n        DispatchQueue.main.async(execute: execute)\n    }\n\n    healthStore.execute(waterQuery)\n}"
+			},
+			{
+				"type": "p",
+				"value": "To read the data from Apple Health, I needed to set up a <code class=\"language-swift\">HKSampleQuery</code>. This will return either an error or the queried samples. If it is the former, I just return the error to the caller. If it is the latter, I call the <code class=\"language-swift\">execute</code> closure. This closure is used to update the model with the new data. Notice that the <code class=\"language-swift\">execute</code> closure is called on the main thread. This is because the view model is a reference type and the view is observing it. If the view model is updated on a background thread, the view will not be notified of the changes."
+			},
+			{
+				"type": "p",
+				"value": "Similarly to the health store, the <code class=\"language-swift\">NotificationManager</code> class is used to manage the notifications. I also needed to ask the user's permission for scheduling notifications. There are a few ways in which notifications can be scheduled. I'm using the time interval based method, which queues a new notification after a certain amount of time has passed."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "func scheduleTimeToDrinkNotification(timeInterval: TimeInterval, dateWhenShows: Date?, onError: @escaping (Error?) -> Void) {\n    let content = UNMutableNotificationContent()\n    content.title = \"Take a Sip\"\n    if let date = dateWhenShows {\n        content.body = \"You last drank \\(Date.now.relativeDateString(to: date))\"\n    } else {\n        content.body = \"Remember to stay hydrated\"\n    }\n    content.sound = UNNotificationSound.default\n    content.badge = 1\n\n    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)\n    let request = UNNotificationRequest(identifier: identifierTimeToDrink, content: content, trigger: trigger)\n    notificationCenter.add(request, withCompletionHandler: onError)\n}"
+			},
+			{
+				"type": "p",
+				"value": "The <code class=\"language-swift\">UNMutableNotificationContent()</code> function let's me create the body of the notification. I'm just setting the notification text, adding a sound, and setting the badge count on the app. As I mentioned, the trigger for the notification is based on a time interval, which is configurable. Finally, the <code class=\"language-swift\">UNNotificationRequest</code> is scheduled using the <code class=\"language-swift\">notificationCenter</code> object."
+			},
+			{
+				"type": "p",
+				"value": "The last thing I want to mention in connection with the view model are the <i>intents</i>. These are the functions that the view can use as callback to user inputs, which in turn trigger an update to the model. For example, when the user logs a new intake of water, the following intent function is executed."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "func registerDrink(volume: Double, date: Date) {\n    // Add the new water record to Health\n    let waterQuantitySample = healthStoreManager.generateQuantitySample(quantity: volume, date: date)\n    healthStoreManager.writeWaterSample(waterQuantitySample) { (success, error) in\n        if success {\n            DispatchQueue.main.async {\n                // Refresh the water records from Health\n                self.model.healthSamples.append(waterQuantitySample)\n            }\n        } else {\n            print(\"Something went wrong writing health sample: \\(String(describing: error))\")\n        }\n    }\n\n    // Cancel pending time-to-drink notifications\n    notificationManager!.cancelPreviousNotifications()\n\n    if (progress >= target) {\n        return\n    }\n\n    // Schedule notification for later\n    let midnight = Calendar(identifier: .gregorian).startOfDay(for: Date(timeIntervalSinceNow: 86400))\n    let timeUntilMidnight = midnight.timeIntervalSinceNow\n    let averageIntake: Double = 200\n    let timeInterval = (averageIntake * Double(timeUntilMidnight)) / Double(remainder)\n    let fireIn: Double = min(timeInterval, model.notificationInterval)\n    let dateWhenNotificationShows = Date(timeInterval: fireIn, since: date)\n    notificationManager!.scheduleTimeToDrinkNotification(timeInterval: fireIn, dateWhenShows: dateWhenNotificationShows) { error in\n        if error != nil {\n            // Handle any errors.\n        }\n    }\n}"
+			},
+			{
+				"type": "p",
+				"value": "First off, the new intake is logged to Apple Health. If the write operation is successful, the model is updated with the new data. Next, the pending notifications (if any) to remind the user to drink are cancelled. If the user has already reached their daily target, the function returns since there's no need to schedule any further notifications. Otherwise, a new notification is scheduled. The time interval for the notification is calculated based on the user's average intake and the time until midnight. The notification is scheduled to fire in the minimum of the calculated time interval and the user's configured notification interval. This is to ensure that the user is not bombarded with notifications if they have not reached their target."
+			},
+			{
+				"type": "h3",
+				"value": "View"
+			},
+			{
+				"type": "p",
+				"value": "To build the UI of the app, I've used SwiftUI. For an otherwise programmer like myself, I found SwiftUI to be really easy to get going with since it builds the UI right in the code. There's the <code class=\"language-swift\">View</code> type and loads of built-in views which can be nested and stacked as needed. The <code class=\"language-swift\">View</code> type is a protocol, so it can be extended to add custom views. For example, I've created many different views most of which are then nested inside other views. This allows me to reuse components and keep the code clean and readable. It also makes it easy to change the UI of the app since I can just apply any change to a single part of the code (i.e. where the view is implemented) and it'll be reflected everywhere that it's used."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "import SwiftUI\n\nstruct ContentView: View {\n    @EnvironmentObject var viewModel: ViewModel\n\n    var body: some View {\n        TabView {\n            TodayView()\n                .badge(viewModel.model.timeToDrink ? 1 : 0)\n                .tabItem {\n                    Label(\"Today\", systemImage: \"house\")\n                }\n            CalendarHistoryView()\n                .tabItem {\n                    Label(\"History\", systemImage: \"calendar\")\n                }\n        }\n    }\n}"
+			},
+			{
+				"type": "p",
+				"value": "The main entrypoint of the UI is the <code class=\"language-swift\">ContentView</code> struct that conforms to <code class=\"language-swift\">View</code>. An interesting thing is the <code class=\"language-swift\">@EnvironmentObject</code> property wrapper is used to inject the view model into the view. This allows all of the views to access the same model and the intents. Since the model is marked <code class=\"language-swift\">@Published</code> in the view model, this is all that is needed for the views to know when to update their UI."
+			},
+			{
+				"type": "p",
+				"value": "The main interface is a <code class=\"language-swift\">TabView</code> in which I have two views. The <code class=\"language-swift\">TodayView</code> tab gives complete overview of the water intake progress and the associated trends. The <code class=\"language-swift\">CalendarHistoryView</code> tab shows the user's water intake history in a calendar view. The <code class=\"language-swift\">TodayView</code> tab also has a badge that shows whether there are pending notifications. This is to remind the user to drink water if they haven't reached their target. All of this is showcased in the following video."
+			},
+			{
+				"type": "video",
+				"height": "600",
+				"value": {
+					"light": "/projects/aqua_demo.mov",
+					"dark": "/projects/aqua_demo_dark.mov"
+				}
+			},
+			{
+				"type": "h2",
+				"value": "Widget on the Home Screen"
+			},
+			{
+				"type": "p",
+				"value": "To provide a quick and easy insight into the daily progress, I also added a widget extension to the app. This widget can be added to the home screen. It updates the UI every time the user registers a new intake. The following video shows the widget in action."
+			},
+			{
+				"type": "video",
+				"height": "600",
+				"value": {
+					"light": "/projects/aqua_widget.mov",
+					"dark": "/projects/aqua_widget_dark.mov"
+				}
+			},
+			{
+				"type": "p",
+				"value": "For the configuration of the widget I'm using <code class=\"language-swift\">StaticConfiguration</code> which is one without user configurable options. There's no need to have any configuration options here, since the target is already configured in the app, and the progress is also evident. The way widgets work is that they require a piece code that provides a timeline. This timeline dictates how and when the widget needs to be updated."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {\n    var entries: [SimpleEntry] = []\n\n    // Generate a timeline consisting of a single entry\n    let currentDate = Date()\n    let entry = SimpleEntry(date: currentDate)\n    entries.append(entry)\n\n    let updateAfter = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!\n    let timeline = Timeline(entries: entries, policy: .after(updateAfter))\n    completion(timeline)\n}"
+			},
+			{
+				"type": "p",
+				"value": "The timeline for Aqua is fairly simple. There's no automatic update of the water intake. This means the widget won't need to update it's progress on its own. So I'm just creating a timeline with a single entry. The provider will ask for an update after 30 minutes, which might add an icon on the widget if it's time to drink. Otherwise the widget is automatically updated every time the model changes."
+			},
+			{
+				"type": "p",
+				"value": "The widget gets its information from the main app via <code class=\"language-swift\">UserDefaults</code> storage. This is a simple key-value store that is shared between the app and the widget. The widget can read the data from the storage and update the UI accordingly."
+			},
+			{
+				"type": "code",
+				"lang": "language-swift",
+				"value": "private func setSharedData() {\n    let sharedDefault = UserDefaults(suiteName: \"group.widget.com.gmail.roland.kajatin\")!\n    sharedDefault.set(progress, forKey: \"waterProgress\")\n    sharedDefault.set(progressNormalized, forKey: \"waterProgressNormalize\")\n    sharedDefault.set(target, forKey: \"waterTarget\")\n    sharedDefault.set(mostRecentRecord.endDate, forKey: \"waterLastDate\")\n    sharedDefault.set(model.timeToDrink, forKey: \"waterTimeToDrink\")\n\n    // Reload the widget's timeline\n    WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")\n}"
+			},
+			{
+				"type": "p",
+				"value": "I'm just setting the values that I need in the widget. The <code class=\"language-swift\">WidgetCenter.shared.reloadTimelines(ofKind: \"AquaWidget\")</code> call is what triggers the widget to update. The widget will then read the values from the storage and update the UI."
+			},
+			{
+				"type": "image",
+				"value": "/projects/aqua_lock_screen.png"
+			},
+			{
+				"type": "p",
+				"value": "Yes; the widget is also available on the lock screen. 😎"
+			},
+			{
+				"type": "h2",
+				"value": "Apple Watch integration"
+			},
+			{
+				"type": "p",
+				"value": "The fun doesn't end here. I also added an Apple Watch app to the project. This app is a companion to the main app. It allows the user to register water intake directly from the watch. The watch app is also a good way to show the user's progress on the watch face. The following video shows the watch app in action."
+			},
+			{
+				"type": "video",
+				"height": "250",
+				"value": {
+					"light": "/projects/aqua_watch.mp4",
+					"dark": "/projects/aqua_watch.mp4"
+				}
+			},
+			{
+				"type": "p",
+				"value": "The watch app uses the same model and view model as the main app. Therefore, there's no need to have any additional data sharing options. The design of the watch app is different though. Since the watch has a much smaller screen, I opted for a more compact design. It consists of 3 tabs. One for some basic settings, like the target intake. One for the main view, which shows the progress and previous intakes. And the last one is for the previous week's intake records with a chart."
+			}
+		],
+		"flashcards": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"art": [
+			{
+				"type": "p",
+				"value": "I've found out about Processing somewhere around 2015. Most of the time I was working on code that was more system level or low level. I was working on a lot of C++ and C code. Processing was a breath of fresh air. It was a way to express myself creatively. It allowed me to take some math and physics concepts that we were learning in school and turn them into something visual. It was a way to explore the world of art and coding at the same time. I was hooked."
+			},
+			{
+				"type": "p",
+				"value": "Shout-out to <a class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/user/shiffman\">Daniel Shiffman</a> and his community The Coding Train. I've been following his videos and learning about using mathematical and physical concepts to create something visually appealing or interesting."
+			},
+			{
+				"type": "p",
+				"value": "It often doesn't take much to make something interesting looking. Let's take the animation below as an example. This is a very simple concept: just a bunch of circles, I called them bubbles, moving around the screen. The movement is governed by Perlin noise, which has the interesting property of being pseudo-random yet look realistic. It doesn't have any sharp direction changes. Apart from the movement, I'm just slowly rotating the hue of the bubbles."
+			},
+			{
+				"type": "sketch",
+				"value": "(p5) => {let bubbles = [];let h = 0;class Bubble {constructor(x, y) {this.pos = p5.createVector(x, y);this.vel = p5.createVector(0, 0);this.acc = p5.createVector(0, 0);this.r = p5.random(5, 30);this.color = p5.color(p5.random(h, h + 30),p5.random(100, 255),p5.random(100, 255),p5.random(100, 255));}float() {let xoff = p5.map(this.pos.x, 0, p5.width, 0, 10);let yoff = p5.map(this.pos.y, 0, p5.height, 0, 10);let angle = p5.noise(xoff, yoff) * p5.TWO_PI * 4;let force = p5.Vector.fromAngle(angle);force.mult(0.05);this.acc.add(force);this.vel.add(this.acc);this.pos.add(this.vel);this.acc.mult(0);if (this.vel.mag() > 5) {this.vel.setMag(0);}if (this.pos.x > p5.width + this.r) {this.pos.x = -this.r;}if (this.pos.x < -this.r) {this.pos.x = p5.width + this.r;}if (this.pos.y > p5.height + this.r) {this.pos.y = -this.r;}if (this.pos.y < -this.r) {this.pos.y = p5.height + this.r;}}rotateHue() {this.color = p5.color((p5.hue(this.color) + 0.1) % 255,p5.saturation(this.color),p5.brightness(this.color),p5.alpha(this.color));}show() {p5.noStroke();p5.fill(this.color);p5.ellipse(this.pos.x, this.pos.y, this.r * 2);}}p5.setup = () => {p5.colorMode(p5.HSB, 255);p5.createCanvas(500, 500);p5.background(0, 0, 0, 0);h = p5.random(225);for (let i = 0; i < 50; i++) {let x = p5.random(p5.width);let y = p5.random(p5.height);let b = new Bubble(x, y);bubbles.push(b);}};p5.draw = () => {for (let i = 0; i < bubbles.length; i++) {bubbles[i].float();bubbles[i].rotateHue();bubbles[i].show();}};};"
+			},
+			{
+				"type": "p",
+				"value": "Let's make something more interesting. The animation below still uses little worm-like elements, but it adds a spin on their behaviour. There are a bunch of them spawned near the bottom, and there's a target at the top part of the canvas. Initially, they all start out by moving randomly around in the canvas. Each of them has a certain amount of movement actions that they take (each action is animated, so this is what you see below). At the end, a new set of worms is generated using a genetic algorithm. The closer the worms are to the target, the more likely they are to be selected for the next generation. The new generation is then mutated a bit, and the process repeats. This is how the worms get better at reaching the target."
+			},
+			{
+				"type": "p",
+				"value": "Hint: try drawing an obstacle on the canvas. The worms will learn to circumvent it."
+			},
+			{
+				"type": "sketch",
+				"value": "(p5) => {class Obstacle {constructor(path) {this.path = path;this.weight = 5;}distSq(v, w) {return (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);}distToSegment(p, v, w) {let l2 = this.distSq(v, w);if (l2 == 0) return this.distSq(p, v);let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;t = p5.max(0, p5.min(1, t));return this.distSq(p,p5.createVector(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));}checkCollision(rocket) {for (let i = 0; i < this.path.length - 1; i++) {let p = this.path[i];let p2 = this.path[i + 1];let d = this.distToSegment(rocket.pos, p, p2);if (d < rocket.r) {return true;}}return false;}show() {p5.push();p5.noFill();p5.stroke(55);p5.strokeWeight(this.weight);for (let i = 0; i < this.path.length - 1; i++) {let p = this.path[i];let p2 = this.path[i + 1];p5.line(p.x, p.y, p2.x, p2.y);}p5.pop();}}class DNA {constructor(lifespan, genes) {this.genes = [];this.lifespan = lifespan;this.max_acc = 0.2;this.mutation_rate = 0.01;if (genes) this.genes = genes;else this.generate();}generate() {for (let i = 0; i < this.lifespan; i++) {this.genes[i] = p5.Vector.random2D();this.genes[i].setMag(p5.random(0, this.max_acc));}}crossover(partner, fitnessA, fitnessB) {let child = [];let midpoint = p5.floor(p5.random(this.genes.length));for (let i = 0; i < this.genes.length; i++) {if (i > midpoint) child.push(this.genes[i]);else child.push(partner.genes[i]);}return new DNA(this.lifespan, child);}mutation() {for (let i = 0; i < this.genes.length; i++) {if (p5.random(1) < this.mutation_rate) {this.genes[i] = p5.Vector.random2D();this.genes[i].setMag(this.max_acc);}}}}class Rocket {constructor(lifespan, dna, h, h2) {this.pos = p5.createVector(p5.width / 2, p5.height - 10);this.vel = p5.createVector();this.acc = p5.createVector();this.max_vel = 4;this.r = 10;this.tailWidth = 15;this.tailLength = 30;this.color_head = p5.color(p5.random(h, h + 30),p5.random(100, 255),p5.random(100, 255));this.color_tail = p5.color(p5.random(h2, h2 + 30),p5.random(100, 255),p5.random(100, 255));this.path = [];this.crashed = false;this.completed = false;this.fitness = 0;if (dna) this.dna = dna;else this.dna = new DNA(lifespan);}applyForce(force) {this.acc.add(force);}calcFitness(target) {let max_dist = 0;max_dist = p5.max(max_dist, p5.dist(0, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(0, p5.height, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, p5.height, target.x, target.y));let d = p5.dist(this.pos.x, this.pos.y, target.x, target.y);this.fitness = p5.map(d, 0, max_dist, 1, 0);if (this.completed) this.fitness *= 10;if (this.crashed) this.fitness /= 10;}update(count, target, obstacles) {if (this.crashed || this.completed) return;let d = p5.dist(this.pos.x, this.pos.y, target.x, target.y);if (d < 10) {this.pos = target.copy();this.completed = true;}if (this.pos.x > p5.width || this.pos.x < 0) {this.crashed = true;}if (this.pos.y > p5.height || this.pos.y < 0) {this.crashed = true;}for (let i = 0; i < obstacles.length; i++) {if (obstacles[i].checkCollision(this)) {this.crashed = true;break;}}this.applyForce(this.dna.genes[count]);this.vel.add(this.acc);this.pos.add(this.vel);this.acc.mult(0);this.vel.limit(this.max_vel);this.path.push(this.pos.copy());if (this.path.length > this.tailLength) this.path.splice(0, 1);}show(target) {let max_dist = 0;max_dist = p5.max(max_dist, p5.dist(0, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, 0, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(0, p5.height, target.x, target.y));max_dist = p5.max(max_dist, p5.dist(p5.width, p5.height, target.x, target.y));for (let i = 0; i < this.path.length - 1; i++) {p5.push();let p = this.path[i];let p2 = this.path[i + 1];let d = p5.dist(p2.x, p2.y, target.x, target.y);let alpha = p5.map(d, 0, max_dist, 100, 0);let c = p5.color(p5.hue(this.color_tail),p5.saturation(this.color_tail),p5.brightness(this.color_tail),alpha);p5.stroke(c);p5.strokeWeight(this.tailWidth);p5.line(p.x, p.y, p2.x, p2.y);p5.pop();}p5.push();p5.noStroke();p5.fill(this.color_head);p5.translate(this.pos.x, this.pos.y);p5.rotate(this.vel.heading());p5.rectMode(p5.CENTER);p5.ellipse(0, 0, this.r * 2);p5.pop();}}class Population {constructor(size, lifespan) {this.rockets = [];this.popsize = size;this.matingpool = [];this.lifespan = lifespan;this.obstacles = [];this.h = p5.random(225);this.h2 = p5.random(225);for (let i = 0; i < this.popsize; i++) {this.rockets[i] = new Rocket(lifespan, null, this.h, this.h2);}}run(count, target) {for (let i = 0; i < this.popsize; i++) {this.rockets[i].update(count, target, this.obstacles);this.rockets[i].show(target);}for (let i = 0; i < this.obstacles.length; i++) {this.obstacles[i].show();}}evaluate(target) {let maxfit = 0;for (let i = 0; i < this.popsize; i++) {this.rockets[i].calcFitness(target);if (this.rockets[i].fitness > maxfit) {maxfit = this.rockets[i].fitness;}}this.matingpool = [];for (let i = 0; i < this.popsize; i++) {let n = (this.rockets[i].fitness / maxfit) * 100;for (let j = 0; j < n; j++) {this.matingpool.push(this.rockets[i]);}}}selection() {let newRockets = [];for (let i = 0; i < this.rockets.length; i++) {let parentA = p5.random(this.matingpool);if (parentA.crashed) {newRockets[i] = new Rocket(this.lifespan, null, this.h, this.h2);continue;}let parentB = p5.random(this.matingpool);if (parentB.crashed) {newRockets[i] = new Rocket(this.lifespan, null, this.h, this.h2);continue;}let child = parentA.dna.crossover(parentB.dna,parentA.fitness,parentB.fitness);child.mutation();newRockets[i] = new Rocket(this.lifespan, child, this.h, this.h2);}this.rockets = newRockets;}createObstacle(new_obstacle) {let obstacle = new Obstacle(new_obstacle);this.obstacles.push(obstacle);}}let target;let targetRadius = 16;let pulseDir = 1;let population;let count;let new_obstacle = [];p5.setup = () => {p5.colorMode(p5.HSB, 255);p5.createCanvas(500, 300);p5.background(0,0,0,0);target = p5.createVector(p5.random(50, p5.width - 50), p5.random(20, 100));population = new Population(50, 200);count = 0;};p5.draw = () => {p5.background(0,0,0,0);p5.clear();population.run(count, target);count++;if (count == population.lifespan) {population.evaluate(target);population.selection();count = 0;}if (true == p5.mouseIsPressed) {new_obstacle.push(p5.createVector(p5.mouseX, p5.mouseY));} else if (false == p5.mouseIsPressed && new_obstacle.length > 0) {new_obstacle.push(p5.createVector(p5.mouseX, p5.mouseY));population.createObstacle(new_obstacle);new_obstacle = [];}if (new_obstacle.length > 1) {for (let i = 0; i < new_obstacle.length - 1; i++) {let p = new_obstacle[i];let p2 = new_obstacle[i + 1];p5.stroke(55);p5.line(p.x, p.y, p2.x, p2.y);}}p5.stroke(55);p5.strokeWeight(2);p5.ellipse(target.x, target.y, targetRadius);targetRadius += 0.1 * pulseDir;if (targetRadius > 22) {pulseDir = -1;}if (targetRadius < 16) {pulseDir = 1;}};};"
+			},
+			{
+				"type": "p",
+				"value": ""
+			},
+			{
+				"type": "sketch",
+				"value": "(p5) => {let time = 0;let radius = 40;let wave = [];let slider;let selector;let drawing = [];function waveChanged() {time = 0;wave = [];drawing = [];}p5.setup = () => {p5.createCanvas(800,500);slider = p5.createSlider(1, 20, 1);slider.changed(waveChanged);selector = p5.createSelect();selector.option('Square');selector.option('Sawtooth');selector.option('Triangle');selector.changed(waveChanged);p5.colorMode(p5.HSB);};p5.draw = () => {p5.background(0);p5.translate(radius * 4, p5.height / 2);let x = 0;let y = 0;for (let i = 0; i < slider.value(); i++) {prevx = x;prevy = y;let n = 0;let r = 0;switch (selector.value()) {case \"Square\":n = i * 2 + 1;r = radius * (4 / (n * p5.PI));break;case \"Sawtooth\":n = i + 1;r = radius * (2 / (n * p5.pow(-1, n) * p5.PI));break;case \"Triangle\":n = i * 2 + 1;r = radius * ((8 * p5.pow(-1, (n - 1) / 2)) / (p5.pow(p5.PI, 2) * p5.pow(n, 2)));break;default:break;}x += r * p5.cos(n * time);y += r * p5.sin(n * time);p5.stroke(i * (360 / slider.value()), 100, 100);p5.line(prevx, prevy, x, y);p5.noFill();p5.ellipse(prevx, prevy, 2 * r);}wave.unshift(y);if (wave.length > 1000) {wave.pop();}p5.stroke(255);p5.noFill();p5.beginShape();for (let i = 0; i < wave.length; i++) {p5.vertex(i + radius + 100, wave[i]);}p5.endShape();drawing.push([x, y]);p5.stroke(255);p5.noFill();p5.beginShape();drawing.forEach((el) => {p5.vertex(el[0], el[1]);});p5.endShape();p5.stroke(255);p5.line(x, y, radius + 100, wave[0]);time -= 0.02;};}"
+			}
+		],
+		"dnslookup": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"website": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		]
+	}
 }
