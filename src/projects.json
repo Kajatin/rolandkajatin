@@ -17,17 +17,41 @@
 			"github": "https://github.com/Kajatin/Aqua"
 		},
 		{
+			"id": "huegpt",
+			"name": "HueGPT",
+			"description": "I have Philips Hue lights installed at home that can set nice ambiances. There are some pre-configured color options, but it can be tiresome to pick colors manually. This tool gives me the ability to generate images with DALL·E, picks dominant colors, and sets them on the lights.",
+			"cover": "huegpt.png",
+			"icons": ["nextjs", "typescript", "firebase"],
+			"github": "https://github.com/Kajatin/hue-gpt"
+		},
+		{
 			"id": "flashcards",
 			"name": "Flashcards",
 			"description": "Learning Danish is hard. I made this app to create collections of words with explanations that I could then practice and learn over time. I submitted this app to the 2023 Supabase hackathon.",
 			"cover": "flashcards.png",
-			"icons": ["supabase", "nextjs"],
+			"icons": ["vercel", "supabase", "nextjs"],
 			"github": "https://github.com/Kajatin/supabase-flashcard"
 		},
 		{
+			"id": "walkietalkie",
+			"name": "Walkie Talkie",
+			"description": "We had this interview coding challenge at work to build a walkie talkie app. I though it was a fun idea, so I decided to build it myself. The app lets you connect and chat with others. It uses WebRTC for the live audio streaming.",
+			"cover": "walkietalkie.png",
+			"icons": ["nextjs", "node", "typescript"],
+			"github": "https://github.com/Kajatin/walkie-talkie"
+		},
+		{
+			"id": "officewars",
+			"name": "Office Wars",
+			"description": "This is a simple game app built in collaboration with one of my colleagues. It is a turn based strategy game where you control a tank with various abilities on a hexagonal map. It won 2nd place at the 2023 Wasp hackathon.",
+			"cover": "officewars.png",
+			"icons": ["react", "node", "prisma"],
+			"github": "https://github.com/Kajatin/office-wars"
+		},
+		{
 			"id": "art",
-			"name": "Art made with code",
-			"description": "I've always been fascinated by emergent art with code. This project is a collection of art (well, pleasant looking visualizations) made with code. It's built using JavaScript and the p5.js library.",
+			"name": "Creative coding",
+			"description": "I've always been fascinated by emergent, visually appealing properties of code. This project is a collection of pleasant looking visualizations made with code. It's built using JavaScript and the p5.js library.",
 			"cover": "art-automata.png",
 			"icons": ["p5js", "javascript"],
 			"github": "https://github.com/Kajatin/artistic-code"
@@ -35,17 +59,33 @@
 		{
 			"id": "dnslookup",
 			"name": "DNS lookup",
-			"description": "A saw a good YouTube video about the outage Facebook had in 2023. Apparently there were some problems with their name servers. This tool is a dumb version of the dig command.",
+			"description": "A saw a good YouTube video about the outage Facebook had in 2023. Apparently there were some problems with their name servers. This tool is a dumb version of the dig command to make DNS lookups.",
 			"cover": "dns.png",
 			"icons": ["rust"],
 			"github": "https://github.com/Kajatin/dns-lookup"
+		},
+		{
+			"id": "fleetglobe",
+			"name": "IoT messages",
+			"description": "At Teton.ai, I worked a lot on the deployment of IoT devices. This project is a fun visualization of the messages sent by these devices. Each time a message is sent it is visualized on the map. It's built using JavaScript and the p5.js library.",
+			"cover": "mqtt.png",
+			"icons": ["node", "p5js", "javascript", "mqtt"],
+			"github": "https://github.com/Kajatin/fleet-globe"
+		},
+		{
+			"id": "notificationstest",
+			"name": "Push Notifications",
+			"description": "A simple application both in native iOS and React Native to test push notifications. The app is connected to Firebase Cloud Messaging and can receive notifications from the server. It's intended to test the reliability of push notifications.",
+			"cover": "pushnotifications.png",
+			"icons": ["react", "node", "swift", "firebase"],
+			"github": "https://github.com/Kajatin/notification-tester"
 		},
 		{
 			"id": "website",
 			"name": "Personal website",
 			"description": "Well, you're looking at it 👀. This website is built using SvelteKit and hosted on Cloudflare Pages. The source code is available on GitHub.",
 			"cover": "svelte-personal-website.png",
-			"icons": ["cloudflare", "svelte", "nodejs", "typescript"],
+			"icons": ["cloudflare", "svelte", "node", "typescript"],
 			"github": "https://github.com/Kajatin/rolandkajatin"
 		}
 	]

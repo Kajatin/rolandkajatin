@@ -372,7 +372,25 @@
 				"value": "The watch app uses the same model and view model as the main app. Therefore, there's no need to have any additional data sharing options. The design of the watch app is different though. Since the watch has a much smaller screen, I opted for a more compact design. It consists of 3 tabs. One for some basic settings, like the target intake. One for the main view, which shows the progress and previous intakes. And the last one is for the previous week's intake records with a chart."
 			}
 		],
+		"huegpt": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
 		"flashcards": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"walkietalkie": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"officewars": [
 			{
 				"type": "p",
 				"value": "Coming soon..."
@@ -465,6 +483,18 @@
 			}
 		],
 		"dnslookup": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"fleetglobe": [
+			{
+				"type": "p",
+				"value": "Coming soon..."
+			}
+		],
+		"notificationstest": [
 			{
 				"type": "p",
 				"value": "Coming soon..."
