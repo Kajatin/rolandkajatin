@@ -131,7 +131,7 @@
 			}
 		};
 	};`;
-	const sketchParsed: Sketch = (0, eval)(sketch);
+	// const sketchParsed: Sketch = (0, eval)(sketch);
 
 	let quirks = [
 		'syncs with eccentricity!',
