@@ -1,5 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import P5, { type Sketch } from 'p5-svelte';
+
+	let img;
+	let imageLoaded = false;
+
+	onMount(async () => {
+		img = new Image();
+		img.onload = () => imageLoaded = true;
+		img.src = '/roland.png';
+	});
 
 	let sketch = `(p5) => {
 		class Segment {
@@ -138,36 +148,40 @@
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
 </script>
 
-<div class="hero">
-	<div class="sketch">
-		<P5 sketch={sketchParsed} />
+{#if imageLoaded}
+	<div class="hero">
+		<div class="sketch">
+			<P5 sketch={sketchParsed} />
+		</div>
+		<div class="info">
+			<h1>Hello world!</h1>
+			<h3>
+				I'm Roland, a systems engineer based in Copenhagen, currently annoying my colleagues at
+				Teton.ai.
+			</h3>
+			<p>
+				I'm a self-professed nerd who believes in the power of a semicolon (pun intended) and, when
+				I'm not playing superhero in the digital world, you can find me exploring the physical one.
+			</p>
+			<p>
+				I'm always ready to take on a new project, so if you have something in mind, feel free to
+				hit me up on one of <a href="/contact">my socials</a>.
+			</p>
+			<p>
+				Welcome to my corner of the internet, where coding
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<span
+					class="quirk"
+					on:click={() => (quirk = quirks[Math.floor(Math.random() * quirks.length)])}
+				>
+					{quirk}
+				</span>
+			</p>
+		</div>
 	</div>
-	<div class="info">
-		<h1>Hello world!</h1>
-		<h3>
-			I'm Roland, a systems engineer based in Copenhagen, currently annoying my colleagues at
-			Teton.ai.
-		</h3>
-		<p>
-			I'm a self-professed nerd who believes in the power of a semicolon (pun intended) and, when
-			I'm not playing superhero in the digital world, you can find me exploring the physical one.
-		</p>
-		<p>
-			I'm always ready to take on a new project, so if you have something in mind, feel free to
-			hit me up on one of <a href="/contact">my socials</a>.
-		</p>
-		<p>
-			Welcome to my corner of the internet, where coding
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<span
-				class="quirk"
-				on:click={() => (quirk = quirks[Math.floor(Math.random() * quirks.length)])}
-			>
-				{quirk}
-			</span>
-		</p>
-	</div>
-</div>
+{:else}
+  <div class="spinner"></div>
+{/if}
 
 <style>
 	.hero {
@@ -214,6 +228,32 @@
 		border-bottom: 0.1rem solid var(--accent-secondary);
 	}
 
+	.spinner {
+		position: relative;
+		width: 4rem;
+		height: 4rem;
+		animation: spin 1.3s cubic-bezier(0.33, 0, 0.67, 1) infinite;
+		margin: 10rem auto;
+	}
+
+	.spinner::before {
+		content: "";
+		position: absolute;
+		top: -0.5rem;
+		left: -0.5rem;
+		right: -0.5rem;
+		bottom: -0.5rem;
+		background: linear-gradient(25deg, var(--accent-primary), var(--accent-secondary));
+		border-radius: 1rem;
+		z-index: -1;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		80% { transform: rotate(360deg); }
+		100% { transform: rotate(360deg); }
+	}
+
 	@media (prefers-color-scheme: dark) {
 		.quirk {
 			color: var(--accent-primary-dark);
@@ -225,6 +265,10 @@
 
 		a:hover {
 			border-bottom: 0.1rem solid var(--accent-secondary-dark);
+		}
+
+		.spinner::before {
+			background: linear-gradient(25deg, var(--accent-primary-dark), var(--accent-secondary-dark));
 		}
 	}
 
