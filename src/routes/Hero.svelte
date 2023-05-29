@@ -1,15 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import P5, { type Sketch } from 'p5-svelte';
+	import LoaderSpinner from './LoaderSpinner.svelte';
 
-	let img;
-	let imageLoaded = false;
-
-	onMount(async () => {
-		img = new Image();
-		img.onload = () => imageLoaded = true;
-		img.src = '/roland.png';
-	});
+	let sketchParsed: Sketch | null = null;
 
 	let sketch = `(p5) => {
 		class Segment {
@@ -131,7 +125,10 @@
 			}
 		};
 	};`;
-	const sketchParsed: Sketch = (0, eval)(sketch);
+
+	onMount(async () => {
+		sketchParsed = (0, eval)(sketch);
+	});
 
 	let quirks = [
 		'syncs with eccentricity!',
@@ -148,7 +145,7 @@
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
 </script>
 
-{#if imageLoaded}
+{#if sketchParsed}
 	<div class="hero">
 		<div class="sketch">
 			<P5 sketch={sketchParsed} />
@@ -180,7 +177,7 @@
 		</div>
 	</div>
 {:else}
-  <div class="spinner"></div>
+  <LoaderSpinner />
 {/if}
 
 <style>
@@ -228,26 +225,6 @@
 		border-bottom: 0.1rem solid var(--accent-secondary);
 	}
 
-	.spinner {
-		position: relative;
-		width: 4rem;
-		height: 4rem;
-		animation: spin 1.3s cubic-bezier(0.33, 0, 0.67, 1) infinite;
-		margin: 10rem auto;
-	}
-
-	.spinner::before {
-		content: "";
-		position: absolute;
-		top: -0.5rem;
-		left: -0.5rem;
-		right: -0.5rem;
-		bottom: -0.5rem;
-		background: linear-gradient(25deg, var(--accent-primary), var(--accent-secondary));
-		border-radius: 1rem;
-		z-index: -1;
-	}
-
 	@keyframes spin {
 		0% { transform: rotate(0deg); }
 		80% { transform: rotate(360deg); }
@@ -265,10 +242,6 @@
 
 		a:hover {
 			border-bottom: 0.1rem solid var(--accent-secondary-dark);
-		}
-
-		.spinner::before {
-			background: linear-gradient(25deg, var(--accent-primary-dark), var(--accent-secondary-dark));
 		}
 	}
 
