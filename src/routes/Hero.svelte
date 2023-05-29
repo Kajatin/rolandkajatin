@@ -126,10 +126,6 @@
 		};
 	};`;
 
-	onMount(async () => {
-		sketchParsed = (0, eval)(sketch);
-	});
-
 	let quirks = [
 		'syncs with eccentricity!',
 		'mingles with peculiarity!',
@@ -143,6 +139,26 @@
 		'pairs with wit and wonder!'
 	];
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
+
+	onMount(async () => {
+		sketchParsed = (0, eval)(sketch);
+
+		const interval = setInterval(async () => {
+			const quirkLength = quirk.length;
+			for (let i = 0; i <= quirkLength; i++) {
+				await new Promise(resolve => setTimeout(resolve, 30));
+				quirk = quirk.slice(0, -1);
+			}
+
+			quirk = '_';
+			await new Promise(resolve => setTimeout(resolve, 200));
+			quirk = quirks[Math.floor(Math.random() * quirks.length)];
+		}, 10000); // change the quirk every 10 seconds
+
+		return () => {
+			clearInterval(interval); // clear interval when the component unmounts
+		};
+	});
 </script>
 
 {#if sketchParsed}
@@ -209,6 +225,28 @@
 		color: var(--accent-primary);
 		font-weight: bold;
 		cursor: pointer;
+		display: inline-block;
+		padding-right: 0.5rem;
+
+		/* create a pseudo-element for the cursor */
+		position: relative;
+	}
+
+	.quirk::after {
+		/* keyframes animation for the blinking cursor */
+		content: '';
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 0.3rem;
+		height: 1rem;
+		background: currentColor;
+		animation: blink 1s infinite;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 0 }
+		50% { opacity: 0.6 }
 	}
 
 	a {
