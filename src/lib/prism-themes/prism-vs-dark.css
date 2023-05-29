@@ -1,0 +1,178 @@
+.vscode-light-colors {
+	color: #dcdcaa;
+	color: #4ec9b0;
+	color: #4ec9b0;
+	color: #c586c0;
+	color: #9cdcfe;
+	color: #4fc1ff;
+	color: #9cdcfe;
+	color: #ce9178;
+	color: #ce9178;
+	color: #d16969;
+	color: #dcdcaa;
+	color: #d7ba7d;
+	color: #569cd6;
+	color: #d7ba7d;
+	color: #c8c8c8;
+	color: #c586c0;
+	color: #ce9178;
+	color: #dcdcaa;
+	color: #b5cea8;
+}
+
+/* Set the main properties of the code, code blocks, and inline code */
+code[class*='language-'],
+pre[class*='language-'] {
+	/* background: unset; */
+	color: #9cdcfe;
+	/* font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; */
+	/* The following properties are standard, please leave them as they are */
+	font-size: 0.9rem;
+	direction: ltr;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	overflow: auto;
+	line-height: 1.2em;
+	/* The default is 4, but you could change it if you really, really want to */
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+	/* The following properties are also standard */
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+/* Optional: What the code looks like when highlighted */
+code[class*='language-']::-moz-selection,
+code[class*='language-'] ::-moz-selection,
+pre[class*='language-']::-moz-selection,
+pre[class*='language-'] ::-moz-selection {
+	background: #c1def1;
+	/* color: unset; */
+}
+
+code[class*='language-']::selection,
+code[class*='language-'] ::selection,
+pre[class*='language-']::selection,
+pre[class*='language-'] ::selection {
+	background: #c1def1;
+	/* color: unset; */
+}
+
+/* Properties specific to code blocks */
+pre[class*='language-'] {
+	padding: 1em;
+	/* this is standard */
+	margin: 0.5em 0;
+	/* this is the default */
+	border-radius: 0.5rem;
+	/* border: 0.1rem solid var(--accent-primary); */
+	border: 0.1rem solid rgb(70, 70, 70);
+	background-color: rgb(15, 15, 15);
+}
+
+/* Properties specific to inline code */
+:not(pre) > code[class*='language-'] {
+	padding: 0.1em;
+	white-space: normal;
+	background-color: #000000;
+}
+
+/**
+ * These are the minimum tokens you must style, you can rearrange them and/or style more tokens as you want
+ * The concepts behind these standard tokens, as well as some examples, can be found here: https://prismjs.com/tokens.html
+ */
+.token.comment,
+.token.prolog,
+.token.cdata,
+.token.doctype {
+	color: #b5cea8;
+}
+
+.token.function {
+	color: #dcdcaa;
+}
+
+.token.class-name {
+	color: #4ec9b0;
+}
+
+.token.atrule,
+.token.attr-name,
+.token.attr-value,
+.token.regex,
+.token.entity,
+.token.property,
+.token.keyword,
+.language-autohotkey .token.selector,
+.language-json .token.boolean,
+.language-json .token.number,
+code[class*='language-css'] {
+	color: #569cd6;
+}
+
+.token.constant {
+	color: #4fc1ff;
+}
+
+.token.url,
+.token.variable,
+.token.boolean,
+.token.symbol,
+.token.char,
+.token.inserted,
+.token.number {
+	color: #b5cea8;
+}
+
+.token.deleted,
+.token.string,
+.language-autohotkey .token.tag {
+	color: #ce9178;
+}
+
+.token.important {
+	color: #e90;
+}
+
+.token.selector,
+.language-autohotkey .token.keyword {
+	color: #569cd6;
+}
+
+.token.directive.tag .tag {
+	background: #ffff00;
+	color: #393a34;
+}
+
+.line-numbers .line-numbers-rows > span:before {
+	color: #a5a5a5;
+}
+
+/* The following rules are pretty similar across themes, but feel free to adjust them */
+.token.important,
+.token.bold {
+	font-weight: bold;
+}
+
+.token.italic {
+	font-style: italic;
+}
+
+.token.entity {
+	cursor: help;
+}
+
+.token.namespace {
+	opacity: 0.7;
+}
+
+/* LANGUAGE-SPECIFIC OVERRIDES */
+/* If you'd like your theme to have overrides for specific languages, here's an example, you can remove it and/or add more overrides */
+/* .language-css .token.important {
+	color: unset;
+} */

@@ -40,10 +40,10 @@
 	}
 
 	/* detect dark mode preference */
-	/* @media (prefers-color-scheme: dark) {
-        :global(body) {
-            background: #111;
-            color: #ccc;
-        }
-    } */
+	@media (prefers-color-scheme: dark) {
+		:global(body) {
+			background: #1b1b1b;
+			color: #f5f5f5;
+		}
+	}
 </style>

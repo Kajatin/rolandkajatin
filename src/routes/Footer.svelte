@@ -1,21 +1,15 @@
 <footer>
-    <nav>
+	<nav>
 		<ul>
-            <li>
-                <a href="/">
-                    Home
-                </a>
-            </li>
-            <li>
-                <a href="/blog">
-                    Blog
-                </a>
-            </li>
-            <li>
-                <a href="/contact">
-                    Contact
-                </a>
-            </li>
+			<li>
+				<a href="/"> Home </a>
+			</li>
+			<li>
+				<a href="/blog"> Blog </a>
+			</li>
+			<li>
+				<a href="/contact"> Contact </a>
+			</li>
 		</ul>
 	</nav>
 	<ul>
@@ -52,37 +46,38 @@
 		flex-direction: row;
 		justify-content: space-between;
 		padding: 2rem 2rem 4rem 2rem;
-		background: var(--accent-secondary);
+		background: var(--accent-primary);
+		margin-top: 6rem;
 	}
 
-    footer nav {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+	footer nav {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-    footer nav ul {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        list-style: none;
-        padding: 0;
-    }
+	footer nav ul {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		list-style: none;
+		padding: 0;
+	}
 
-    footer nav li {
-        margin: 0 1em;
-    }
+	footer nav li {
+		margin: 0 1em;
+	}
 
-    footer nav a {
-        color: var(--page-background);
-        text-decoration: none;
-        font-weight: 600;
-    }
+	footer nav a {
+		color: var(--page-background);
+		text-decoration: none;
+		font-weight: 600;
+	}
 
-    footer nav a:hover {
-        text-decoration: underline;
-        text-decoration-thickness: 0.2em;
-    }
+	footer nav a:hover {
+		text-decoration: underline;
+		text-decoration-thickness: 0.2em;
+	}
 
 	footer ul {
 		display: flex;
@@ -100,5 +95,30 @@
 		width: 1.7em;
 		height: 1.7em;
 		fill: var(--page-background);
+	}
+
+	@media (max-width: 1000px) {
+		footer {
+			flex-direction: column;
+			padding: 2rem 1rem 4rem 1rem;
+		}
+
+		footer nav {
+			margin-bottom: 2rem;
+		}
+	}
+
+	@media (prefers-color-scheme: dark) {
+		footer {
+			background: var(--accent-primary-dark);
+		}
+
+		footer nav a {
+			color: var(--page-background-dark);
+		}
+
+		footer svg {
+			fill: var(--page-background-dark);
+		}
 	}
 </style>
