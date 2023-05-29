@@ -151,7 +151,7 @@
 {#if imageLoaded}
 	<div class="hero">
 		<div class="sketch">
-			<P5 sketch={sketchParsed} />
+			<!-- <P5 sketch={sketchParsed} /> -->
 		</div>
 		<div class="info">
 			<h1>Hello world!</h1>
