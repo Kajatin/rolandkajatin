@@ -4,12 +4,7 @@
 
 	let img;
 	let imageLoaded = false;
-
-	onMount(async () => {
-		img = new Image();
-		img.onload = () => imageLoaded = true;
-		img.src = '/roland.png';
-	});
+	let sketchParsed: Sketch | null = null;
 
 	let sketch = `(p5) => {
 		class Segment {
@@ -84,9 +79,9 @@
 		let img;
 		let darkMode = false;
 
-		// p5.preload = () => {
-		// 	img = p5.loadImage("/roland.png");
-		// };
+		p5.preload = () => {
+			img = p5.loadImage("/roland.png");
+		};
 
 		p5.setup = () => {
 			const w = window.innerWidth < 1000 ? 350 : 550;
@@ -95,26 +90,22 @@
 			darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 			const multiplier = darkMode ? 11 : 19;
 
-			// img.resize(w, w);
-			// img.loadPixels();
+			img.resize(w, w);
+			img.loadPixels();
 
-			for (let y = 0; y < 10; y += 8) {
-				for (let x = 0; x < 10; x += 8) {
-			// for (let y = 0; y < img.height; y += 8) {
-			// 	for (let x = 0; x < img.width; x += 8) {
-					// let index = (x + y * img.width) * 4;
-					// let r = img.pixels[index + 0];
-					// let g = img.pixels[index + 1];
-					// let b = img.pixels[index + 2];
-					// let a = img.pixels[index + 3];
-					let a = 255;
+			for (let y = 0; y < img.height; y += 8) {
+				for (let x = 0; x < img.width; x += 8) {
+					let index = (x + y * img.width) * 4;
+					let r = img.pixels[index + 0];
+					let g = img.pixels[index + 1];
+					let b = img.pixels[index + 2];
+					let a = img.pixels[index + 3];
 
 					if (a === 0) {
 						continue;
 					}
 
-					// let brightness = (r + g + b) / 3;
-					let brightness = 255;
+					let brightness = (r + g + b) / 3;
 					let scaledBrightness = p5.sqrt(brightness) * multiplier;
 					if (scaledBrightness >= 255) {
 						scaledBrightness = 255;
@@ -135,7 +126,13 @@
 			}
 		};
 	};`;
-	const sketchParsed: Sketch = (0, eval)(sketch);
+
+	onMount(async () => {
+		img = new Image();
+		img.onload = () => imageLoaded = true;
+		img.src = '/roland.png';
+		sketchParsed = (0, eval)(sketch);
+	});
 
 	let quirks = [
 		'syncs with eccentricity!',
@@ -152,7 +149,7 @@
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
 </script>
 
-{#if imageLoaded}
+{#if sketchParsed}
 	<div class="hero">
 		<div class="sketch">
 			<P5 sketch={sketchParsed} />
