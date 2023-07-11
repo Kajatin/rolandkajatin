@@ -182,7 +182,7 @@
 			</p>
 			<p>
 				I'm always ready to take on a new project, so if you have something in mind, feel free to
-				hit me up on one of <a href="/contact">my socials</a>.
+				hit me up on one of my socials.
 			</p>
 			<p>
 				Welcome to my corner of the internet, where coding
