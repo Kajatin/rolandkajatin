@@ -146,13 +146,17 @@
 		const interval = setInterval(async () => {
 			const quirkLength = quirk.length;
 			for (let i = 0; i <= quirkLength; i++) {
-				await new Promise(resolve => setTimeout(resolve, 30));
+				await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 30));
 				quirk = quirk.slice(0, -1);
 			}
 
-			quirk = '_';
-			await new Promise(resolve => setTimeout(resolve, 200));
-			quirk = quirks[Math.floor(Math.random() * quirks.length)];
+			quirk = '';
+			await new Promise(resolve => setTimeout(resolve, 150));
+			let new_quirk = quirks[Math.floor(Math.random() * quirks.length)];
+			for (let i = 0; i <= new_quirk.length; i++) {
+				await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 30));
+				quirk = new_quirk.slice(0, i);
+			}
 		}, 10000); // change the quirk every 10 seconds
 
 		return () => {
