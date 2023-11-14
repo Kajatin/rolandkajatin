@@ -92,8 +92,8 @@
 			img.resize(w, w);
 			img.loadPixels();
 
-			for (let y = 0; y < img.height; y += 8) {
-				for (let x = 0; x < img.width; x += 8) {
+			for (let y = 0; y < img.height; y += 7) {
+				for (let x = 0; x < img.width; x += 7) {
 					let index = (x + y * img.width) * 4;
 					let r = img.pixels[index + 0];
 					let g = img.pixels[index + 1];
@@ -127,16 +127,17 @@
 	};`;
 
 	let quirks = [
-		'syncs with eccentricity!',
-		'mingles with peculiarity!',
-		'intertwines with geekiness!',
-		'marries whimsicality!',
-		'harmonizes with quirkiness!',
-		'merges with nerdtastic fun!',
-		'engages with individuality!',
-		'meets with originality!',
-		'collides with creativity!',
-		'pairs with wit and wonder!'
+		'¡Hola mundo!',
+		'Bonjour le monde!',
+		'Hallo Welt!',
+		'Ciao mondo!',
+		'Olá mundo!',
+		'Привет мир!',
+		'Hej verden!',
+		'Hei maailma!',
+		'Witaj świecie!',
+		'Pozdravljen, svet!',
+		'Hello világ!',
 	];
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
 
@@ -157,7 +158,7 @@
 				await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 30));
 				quirk = new_quirk.slice(0, i);
 			}
-		}, 10000); // change the quirk every 10 seconds
+		}, 7000); // change the quirk every X seconds
 
 		return () => {
 			clearInterval(interval); // clear interval when the component unmounts
@@ -171,21 +172,7 @@
 			<P5 sketch={sketchParsed} />
 		</div>
 		<div class="info">
-			<h1>Hello world!</h1>
-			<h3>
-				I'm Roland, a systems engineer based in Copenhagen, currently annoying my colleagues at
-				Teton.ai.
-			</h3>
-			<p>
-				I'm a self-professed nerd who believes in the power of a semicolon (pun intended) and, when
-				I'm not playing superhero in the digital world, you can find me exploring the physical one.
-			</p>
-			<p>
-				I'm always ready to take on a new project, so if you have something in mind, feel free to
-				hit me up on one of my socials.
-			</p>
-			<p>
-				Welcome to my corner of the internet, where coding
+			<h1>&gt;
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<span
 					class="quirk"
@@ -193,6 +180,21 @@
 				>
 					{quirk}
 				</span>
+
+			</h1>
+			<h3>
+				I'm Roland, a systems engineer based in Copenhagen, currently
+				building medtech solutions at Teton.ai.
+			</h3>
+			<p>
+				I am passionate about building systems and connecting pieces together.
+				I enjoy working with a wide range of technologies, from low-level
+				embedded systems to high-level web applications.
+			</p>
+			<p>
+				I'm always ready to take on a new project, so if you have something in mind, feel free to
+				hit me up on one of my socials. If you're crazy enough to want to learn more, you can check out my
+				<a href="rolandkajatin.pdf" download>resume</a>.
 			</p>
 		</div>
 	</div>
@@ -243,7 +245,7 @@
 		right: 0;
 		top: 0;
 		width: 0.3rem;
-		height: 1rem;
+		height: 2rem;
 		background: currentColor;
 		animation: blink 1s infinite;
 	}
