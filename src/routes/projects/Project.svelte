@@ -57,15 +57,20 @@
 
 		border-radius: 1rem;
 		border: 0.15rem solid black;
-		box-shadow: 0.4rem 0.5rem transparent;
+		box-shadow: 0.2rem 0.25rem transparent;
 		/* background: linear-gradient(45deg, var(--accent-secondary), var(--accent-primary)); */
 		background: rgb(240, 240, 240);
 
 		overflow: hidden;
+
+		transition-property: all;
+		transition-duration: 0.2s;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.top:hover {
-		box-shadow: 0.4rem 0.5rem var(--accent-primary);
+		box-shadow: 0.2rem 0.25rem var(--accent-primary);
+		transform: translate(-0.2rem, -0.2rem);
 	}
 
 	.container {
@@ -198,7 +203,7 @@
 		}
 
 		.top:hover {
-			box-shadow: 0.4rem 0.5rem var(--accent-primary-dark);
+			box-shadow: 0.2rem 0.25rem var(--accent-primary-dark);
 		}
 
 		.container {
