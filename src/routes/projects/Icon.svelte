@@ -9,6 +9,12 @@
 	let ic = icons[icon];
 	let fill = gray || !ic ? '' : ic.filldark ? ic.filldark : ic.fill;
 	onMount(() => {
+		if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			fill = gray || !ic ? '' : ic.filldark ? ic.filldark : ic.fill;
+		} else {
+			fill = gray || !ic ? '' : ic.fill;
+		}
+
 		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 			console.log(e, ic.fill, ic.filldark);
 			if (e.matches) {
