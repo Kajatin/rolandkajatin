@@ -87,7 +87,7 @@
 			p5.createCanvas(w, w+50);
 
 			darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-			const multiplier = darkMode ? 11 : 19;
+			const multiplier = darkMode ? 11 : 15;
 
 			img.resize(w, w);
 			img.loadPixels();
