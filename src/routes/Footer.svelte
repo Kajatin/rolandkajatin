@@ -35,11 +35,7 @@
 			</a>
 		</li>
 		<li>
-			<a
-				href="mailto:roland.kajatin@gmail.com"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
+			<a href="mailto:roland.kajatin@gmail.com" target="_blank" rel="noopener noreferrer">
 				<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					<title>Email</title>
 					<path
@@ -49,10 +45,7 @@
 			</a>
 		</li>
 		<li>
-			<a
-				href="rolandkajatin.pdf"
-				download
-			>
+			<a href="rolandkajatin.pdf" download>
 				<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					<title>CV</title>
 					<path

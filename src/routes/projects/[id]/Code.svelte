@@ -1,5 +1,4 @@
 <script lang="ts">
-	// @ts-ignore
 	import Prism from 'prismjs';
 	import 'prism-svelte';
 	import { onMount } from 'svelte';
@@ -22,7 +21,11 @@
 	});
 </script>
 
-<pre><code class="{language} line-numbers copy-to-clipboard remove-initial-line-feed">{code}</code></pre>
+<pre>
+	<code class="{language} line-numbers copy-to-clipboard remove-initial-line-feed">
+		{code}
+	</code>
+</pre>
 
 <style>
 	@import url('$lib/prism-plugins/line-numbers/prism-line-numbers.css');

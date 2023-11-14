@@ -1,4 +1,4 @@
-<div class="spinner"></div>
+<div class="spinner" />
 
 <style>
 	.spinner {
@@ -10,7 +10,7 @@
 	}
 
 	.spinner::before {
-		content: "";
+		content: '';
 		position: absolute;
 		top: -0.5rem;
 		left: -0.5rem;
@@ -22,7 +22,7 @@
 	}
 
 	.spinner::after {
-		content: "";
+		content: '';
 		position: absolute;
 		top: 0.1rem;
 		left: 0.1rem;
@@ -34,9 +34,15 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		80% { transform: rotate(360deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		80% {
+			transform: rotate(360deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	@media (prefers-color-scheme: dark) {

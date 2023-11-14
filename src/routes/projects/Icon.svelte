@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	export let icon: string;
-	export let gray: boolean = false;
+	export let gray = false;
 
 	import { icons } from '/src/icons.json';
 

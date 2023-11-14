@@ -137,7 +137,7 @@
 		'Hei maailma!',
 		'Witaj świecie!',
 		'Pozdravljen, svet!',
-		'Hello világ!',
+		'Hello világ!'
 	];
 	let quirk = quirks[Math.floor(Math.random() * quirks.length)];
 
@@ -147,15 +147,15 @@
 		const interval = setInterval(async () => {
 			const quirkLength = quirk.length;
 			for (let i = 0; i <= quirkLength; i++) {
-				await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 30));
+				await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 30));
 				quirk = quirk.slice(0, -1);
 			}
 
 			quirk = '';
-			await new Promise(resolve => setTimeout(resolve, 150));
+			await new Promise((resolve) => setTimeout(resolve, 150));
 			let new_quirk = quirks[Math.floor(Math.random() * quirks.length)];
 			for (let i = 0; i <= new_quirk.length; i++) {
-				await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 30));
+				await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 30));
 				quirk = new_quirk.slice(0, i);
 			}
 		}, 7000); // change the quirk every X seconds
@@ -172,7 +172,8 @@
 			<P5 sketch={sketchParsed} />
 		</div>
 		<div class="info">
-			<h1>&gt;
+			<h1>
+				&gt;
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<span
 					class="quirk"
@@ -180,26 +181,26 @@
 				>
 					{quirk}
 				</span>
-
 			</h1>
 			<h3>
-				I'm Roland, a systems engineer based in Copenhagen, currently
-				building medtech solutions at Teton.ai.
+				I'm Roland, a systems engineer based in Copenhagen, currently building medtech solutions at
+				Teton.ai.
 			</h3>
 			<p>
-				I am passionate about building systems and connecting pieces together.
-				I enjoy working with a wide range of technologies, from low-level
-				embedded systems to high-level web applications.
+				I am passionate about building systems and connecting pieces together. I enjoy working with
+				a wide range of technologies, from low-level embedded systems to high-level web
+				applications.
 			</p>
 			<p>
 				I'm always ready to take on a new project, so if you have something in mind, feel free to
-				hit me up on one of my socials. If you're crazy enough to want to learn more, you can check out my
+				hit me up on one of my socials. If you're crazy enough to want to learn more, you can check
+				out my
 				<a href="rolandkajatin.pdf" download>resume</a>.
 			</p>
 		</div>
 	</div>
 {:else}
-  <LoaderSpinner />
+	<LoaderSpinner />
 {/if}
 
 <style>
@@ -251,8 +252,13 @@
 	}
 
 	@keyframes blink {
-		0%, 100% { opacity: 0 }
-		50% { opacity: 0.6 }
+		0%,
+		100% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 0.6;
+		}
 	}
 
 	a {
@@ -270,9 +276,15 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		80% { transform: rotate(360deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		80% {
+			transform: rotate(360deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	@media (prefers-color-scheme: dark) {

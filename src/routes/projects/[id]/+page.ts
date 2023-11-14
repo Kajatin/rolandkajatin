@@ -4,8 +4,8 @@ import { details } from '/src/details.json';
 
 /** @type {import('./$types').PageLoad} */
 export function load({ params }) {
-	let project = projects.find((project) => project.id === params.id);
-	let detail = details[params.id];
+	const project = projects.find((project: any) => project.id === params.id);
+	const detail = details[params.id];
 
 	if (project) {
 		return {
