@@ -302,6 +302,7 @@
 
 		.sketch {
 			order: 2;
+			display: none;
 		}
 	}
 </style>
