@@ -10,3 +10,4 @@ This is my personal website. It's built with [Svelte](https://svelte.dev) and [S
 - [ ] Add resume
 - [ ] Write first blog post
 - [x] Update intro text
+- [ ] Add project details

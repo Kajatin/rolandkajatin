@@ -9,12 +9,12 @@
 			"github": "https://github.com/Kajatin/jetson-gpio-rust"
 		},
 		{
-			"id": "aqua",
-			"name": "Aqua - Water Tracker App",
-			"description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
-			"cover": "swift-aqua.png",
+			"id": "padelpro",
+			"name": "Padel Pro",
+			"description": "During the summer of 2023, I picked up padel. It's a fun sport that I enjoy playing with my friends. We would always lose track of the game score, so I built this app. It lets you keep track of your matches and tracks your workout too. It's built using SwiftUI and Xcode and is available on the App Store.",
+			"cover": "padelpro.png",
 			"icons": ["swift", "xcode"],
-			"github": "https://github.com/Kajatin/Aqua"
+			"github": "https://github.com/Kajatin/Padel-Pro"
 		},
 		{
 			"id": "huegpt",
@@ -23,6 +23,22 @@
 			"cover": "huegpt.png",
 			"icons": ["nextjs", "typescript", "firebase"],
 			"github": "https://github.com/Kajatin/hue-gpt"
+		},
+		{
+			"id": "padelclub",
+			"name": "Padel Club",
+			"description": "I've been playing padel for a while now which is a 4-player game. I needed a way to organize sessions and invite people to play. This app lets you create padel sessions and others can sign up for them. It's built using Next.js and TypeScript and is hosted on Vercel with AWS integration for the database.",
+			"cover": "padelclub.png",
+			"icons": ["nextjs", "typescript", "aws"],
+			"github": "https://github.com/Kajatin/padel-club"
+		},
+		{
+			"id": "aqua",
+			"name": "Aqua - Water Tracker App",
+			"description": "I've always had trouble drinking enough water. So I decided to build an app for it. Aqua is a simple app that sends reminders when it's time to drink and also registers water intake. It's built using SwiftUI and Xcode.",
+			"cover": "swift-aqua.png",
+			"icons": ["swift", "xcode"],
+			"github": "https://github.com/Kajatin/Aqua"
 		},
 		{
 			"id": "flashcards",
@@ -55,6 +71,14 @@
 			"cover": "art-automata.png",
 			"icons": ["p5js", "javascript"],
 			"github": "https://github.com/Kajatin/artistic-code"
+		},
+		{
+			"id": "simpleled",
+			"name": "Simple LED board",
+			"description": "There is something satisfying about building a physical product. This project is a simple LED board that I designed in KiCad and had manufactured. It's a simple board with a few color LEDs with built-in microcontrollers. It's a fun project to learn about PCB design.",
+			"cover": "simpleled.png",
+			"icons": ["kicad"],
+			"github": "https://github.com/Kajatin/beginner-led-pcb"
 		},
 		{
 			"id": "dnslookup",
