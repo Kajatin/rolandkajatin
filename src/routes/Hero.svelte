@@ -195,7 +195,7 @@
 				I'm always ready to take on a new project, so if you have something in mind, feel free to
 				hit me up on one of my socials. If you're crazy enough to want to learn more, you can check
 				out my
-				<a href="rolandkajatin.pdf" download>resume</a>.
+				<a href="roland_kajatin.pdf" download>resume</a>.
 			</p>
 		</div>
 	</div>
