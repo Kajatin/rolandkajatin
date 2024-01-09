@@ -45,7 +45,7 @@
 			</a>
 		</li>
 		<li>
-			<a href="rolandkajatin.pdf" download>
+			<a href="roland_kajatin.pdf" download>
 				<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					<title>CV</title>
 					<path
