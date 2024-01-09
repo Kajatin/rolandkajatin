@@ -21,11 +21,8 @@
 	});
 </script>
 
-<pre>
-	<code class="{language} line-numbers copy-to-clipboard remove-initial-line-feed">
-		{code}
-	</code>
-</pre>
+<!-- do not lint this line -->
+<pre><code class="{language} line-numbers copy-to-clipboard remove-initial-line-feed">{code}</code></pre>
 
 <style>
 	@import url('$lib/prism-plugins/line-numbers/prism-line-numbers.css');
